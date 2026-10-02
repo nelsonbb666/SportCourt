@@ -1,4 +1,6 @@
 """Esquemas Pydantic del paquete app.schemas."""
+from app.schemas.court import CourtCreate, CourtOut, CourtUpdate, SportOut
+from app.schemas.reservation import ReservationCreate, ReservationOut, ReservationUpdate
 from app.schemas.user import (
     LoginRequest,
     PasswordChangeRequest,
@@ -19,4 +21,11 @@ __all__ = [
     "UserCreate",
     "UserOut",
     "UserUpdate",
+    "CourtCreate",
+    "CourtOut",
+    "CourtUpdate",
+    "SportOut",
+    "ReservationCreate",
+    "ReservationOut",
+    "ReservationUpdate",
 ]

@@ -40,6 +40,7 @@ class UserOut(BaseModel):
     email: EmailStr
     phone: str | None
     is_active: bool
+    is_admin: bool = False
     created_at: datetime
     updated_at: datetime
 

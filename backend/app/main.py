@@ -13,6 +13,30 @@ from app.db.session import init_db
 async def lifespan(app: FastAPI):
     # Desarrollo: crea las tablas que falten (producción: migraciones Alembic)
     init_db()
+    # Crea el usuario administrador y los deportes base si no existen.
+    from app.db.session import SessionLocal
+    from app.services import court_service, user_service
+    from app.schemas.user import UserCreate
+
+    db = SessionLocal()
+    try:
+        court_service.ensure_default_sports(db)
+        admin = user_service.get_user_by_email(db, "admin@sportcourt.com")
+        if admin is None:
+            admin = user_service.register_user(
+                db,
+                UserCreate(
+                    full_name="Administrador SportCourt",
+                    email="admin@sportcourt.com",
+                    phone=None,
+                    password="Admin1234",
+                ),
+            )
+        if not admin.is_admin:
+            admin.is_admin = True
+            db.commit()
+    finally:
+        db.close()
     yield
 
 
