@@ -1,13 +1,31 @@
-/**
- * Componente raíz de SportCourt.
- * Aquí se compondrán proveedores globales (auth, tema) y el router cuando
- * definamos las funcionalidades del proyecto.
- */
+/** Componente raíz: proveedores globales y rutas de SportCourt. */
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Navbar from "../components/layout/Navbar";
+import { AuthProvider } from "../context/AuthContext";
+import ProtectedRoute from "../routes/ProtectedRoute";
+import HomePage from "../pages/HomePage";
+import LoginPage from "../pages/LoginPage";
+import ProfilePage from "../pages/ProfilePage";
+import RecoveryPage from "../pages/RecoveryPage";
+import RegisterPage from "../pages/RegisterPage";
+
 export default function App() {
   return (
-    <main className="app-shell">
-      <h1>🏀 SportCourt</h1>
-      <p>Estructura base lista. Próximamente: páginas, rutas y conexión con la API.</p>
-    </main>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="app-shell">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/registro" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/recuperar" element={<RecoveryPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/perfil" element={<ProfilePage />} />
+            </Route>
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

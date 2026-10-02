@@ -8,8 +8,13 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
-    # Base de datos (se configurará cuando definamos el modelo de datos)
-    DATABASE_URL: str = ""
+    # Base de datos (SQLite por defecto para desarrollo; cambiar a PostgreSQL en producción)
+    DATABASE_URL: str = "sqlite:///./sportcourt.db"
+
+    # Seguridad / JWT
+    SECRET_KEY: str = "dev-secret-key-cambia-esto-en-produccion"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 horas
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
