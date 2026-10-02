@@ -19,9 +19,29 @@ TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=Fals
 
 @pytest.fixture()
 def db_session():
+    # Importar todos los modelos para que create_all cree todas las tablas
+    import app.models  # noqa: F401
+    from app.services import court_service, user_service
+    from app.schemas.user import UserCreate
+
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
     try:
+        # Seed equivalente al arranque de la API (deportes + admin),
+        # usando la sesión en memoria de las pruebas.
+        court_service.ensure_default_sports(session)
+        if user_service.get_user_by_email(session, "admin@sportcourt.com") is None:
+            admin = user_service.register_user(
+                session,
+                UserCreate(
+                    full_name="Administrador SportCourt",
+                    email="admin@sportcourt.com",
+                    phone=None,
+                    password="Admin1234",
+                ),
+            )
+            admin.is_admin = True
+            session.commit()
         yield session
     finally:
         session.close()
@@ -34,6 +54,8 @@ def client(db_session):
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
-        yield c
+    # with_block deshabilitado: el lifespan real usaría la BD de desarrollo;
+    # el seed se hace en la fixture db_session sobre la BD en memoria.
+    c = TestClient(app)
+    yield c
     app.dependency_overrides.clear()

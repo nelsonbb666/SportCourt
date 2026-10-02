@@ -1,7 +1,7 @@
 """Modelo ORM de Reservation (reserva de cancha)."""
 from datetime import date, datetime, time, timezone
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, String, Time, UniqueConstraint
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Index, String, Time
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.court import Court
@@ -17,10 +17,6 @@ class Reservation(Base):
     """Reserva de una cancha por un usuario en un día y franja horaria concretos."""
 
     __tablename__ = "reservations"
-    __table_args__ = (
-        UniqueConstraint("court_id", "date", "start_time", name="uq_reservation_slot"),
-    )
-
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True, nullable=False)
     court_id: Mapped[int] = mapped_column(ForeignKey("courts.id"), index=True, nullable=False)

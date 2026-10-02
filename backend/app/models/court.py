@@ -1,8 +1,8 @@
 """Modelo ORM de Court (cancha)."""
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Float, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
 
@@ -31,7 +31,8 @@ class Court(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    sport_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    sport_id: Mapped[int] = mapped_column(ForeignKey("sports.id"), nullable=False, index=True)
+    sport: Mapped[SportType] = relationship("SportType", lazy="joined")
     location: Mapped[str] = mapped_column(String(255), nullable=False)
     price_per_hour: Mapped[float] = mapped_column(Float, nullable=False)
     capacity: Mapped[int] = mapped_column(Integer, nullable=False, default=10)
