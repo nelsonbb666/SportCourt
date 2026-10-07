@@ -1,4 +1,5 @@
 /** Tarjeta de presentación de una cancha en el catálogo. */
+import { Link } from "react-router-dom";
 import type { Court } from "../../services/courtService";
 
 const SPORT_ICONS: Record<string, string> = {
@@ -38,6 +39,10 @@ export default function CourtCard({ court }: { court: Court }) {
       <p className="court-detail">👥 Capacidad: {court.capacity} personas</p>
       <p className="court-detail">💰 {price} / hora</p>
       {court.description && <p className="court-desc">{court.description}</p>}
+
+      <Link to={`/canchas/${court.id}`} className="btn btn-primary court-cta">
+        Ver disponibilidad
+      </Link>
     </article>
   );
 }

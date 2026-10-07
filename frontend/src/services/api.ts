@@ -1,7 +1,9 @@
 /** Cliente HTTP mínimo para la API de SportCourt (fetch + JWT). */
 
 
-const BASE_URL = "/api/v1";
+// En desarrollo se usa el proxy de Vite ("/api"). En build estático (GitHub Pages)
+// apunta al backend local para poder probar la web sin servidor de API propio.
+const BASE_URL = import.meta.env.PROD ? "http://localhost:8000/api/v1" : "/api/v1";
 const TOKEN_KEY = "sportcourt_access_token";
 
 export function getToken(): string | null {
