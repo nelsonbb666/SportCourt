@@ -2,8 +2,12 @@
 
 
 // En desarrollo se usa el proxy de Vite ("/api"). En build estático (GitHub Pages)
-// apunta al backend local para poder probar la web sin servidor de API propio.
-const BASE_URL = import.meta.env.PROD ? "http://localhost:8000/api/v1" : "/api/v1";
+// se puede definir la URL pública de la API con VITE_API_URL antes de compilar
+// (p. ej. VITE_API_URL=https://mi-backend.onrender.com/api/v1 npm run build:gh-pages).
+// Si no se define, queda vacía y la app funciona en modo demostración sin backend.
+const BASE_URL = import.meta.env.DEV
+  ? "/api/v1"
+  : `${import.meta.env.VITE_API_URL ?? ""}/api/v1`;
 const TOKEN_KEY = "sportcourt_access_token";
 
 export function getToken(): string | null {
