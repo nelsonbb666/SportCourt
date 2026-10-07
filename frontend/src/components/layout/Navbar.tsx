@@ -18,6 +18,7 @@ export default function Navbar() {
         {isAuthenticated ? (
           <>
             <span className="navbar-user">Hola, {user?.full_name.split(" ")[0]}</span>
+            <Link to="/canchas">CONSULTAR CANCHA</Link>
             <Link to="/perfil">Mi perfil</Link>
             <button className="btn btn-secondary" onClick={handleLogout}>
               Cerrar sesión

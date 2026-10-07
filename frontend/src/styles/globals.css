@@ -57,3 +57,43 @@ main, .app-shell > *:not(.navbar) { }
 .alert-success { background: #dcfce7; color: #166534; }
 .alert-error { background: #fee2e2; color: #991b1b; }
 .alert-info { background: #dbeafe; color: #1e40af; }
+
+/* ---- Catálogo de canchas (Consultar Cancha) ---- */
+.courts-page { max-width: 1080px; margin: 2rem auto; padding: 0 1.5rem; }
+.court-filters {
+  display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 1rem 1.25rem; margin: 1.25rem 0;
+}
+.court-filters .field { min-width: 200px; flex: 1; }
+.court-filters select {
+  padding: 0.55rem 0.7rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;
+  background: #fff;
+}
+.field-checkbox { display: flex; gap: 0.4rem; align-items: center; font-weight: 600; font-size: 0.85rem; color: #334155; padding-bottom: 0.55rem; }
+.courts-count { color: #475569; font-size: 0.9rem; }
+.courts-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem; margin-top: 1rem;
+}
+.court-card {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 1.1rem 1.25rem; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  display: flex; flex-direction: column; gap: 0.4rem;
+}
+.court-card-header { display: flex; gap: 0.75rem; align-items: flex-start; }
+.court-icon { font-size: 1.8rem; line-height: 1; }
+.court-name { margin: 0; font-size: 1.05rem; }
+.court-sport-badge {
+  display: inline-block; background: #dbeafe; color: #1e40af; font-size: 0.72rem;
+  font-weight: 700; border-radius: 999px; padding: 0.1rem 0.6rem; margin-top: 0.2rem;
+}
+.court-status {
+  margin-left: auto; font-size: 0.72rem; font-weight: 700; border-radius: 999px;
+  padding: 0.15rem 0.6rem; white-space: nowrap;
+}
+.court-status.available { background: #dcfce7; color: #166534; }
+.court-status.unavailable { background: #fee2e2; color: #991b1b; }
+.court-detail { margin: 0; font-size: 0.88rem; color: #334155; }
+.court-desc { margin: 0.2rem 0 0; font-size: 0.85rem; color: #64748b; }
+.courts-empty { text-align: center; padding: 3rem 1rem; color: #475569; }

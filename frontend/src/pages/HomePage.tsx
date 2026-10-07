@@ -13,9 +13,10 @@ export default function HomePage() {
       {isAuthenticated ? (
         <>
           <p>Bienvenido/a, <strong>{user?.full_name}</strong>. 🎉</p>
-          <p className="page-hint">
-            La funcionalidad de reserva de canchas se construirá en las próximas historias de usuario.
-          </p>
+          <div className="hero-actions">
+            <Link to="/canchas" className="btn btn-primary">CONSULTAR CANCHA</Link>
+            <Link to="/perfil" className="btn btn-secondary">Mi perfil</Link>
+          </div>
         </>
       ) : (
         <div className="hero-actions">

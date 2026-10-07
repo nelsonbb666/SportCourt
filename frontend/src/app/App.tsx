@@ -8,6 +8,7 @@ import LoginPage from "../pages/LoginPage";
 import ProfilePage from "../pages/ProfilePage";
 import RecoveryPage from "../pages/RecoveryPage";
 import RegisterPage from "../pages/RegisterPage";
+import CourtsPage from "../pages/CourtsPage";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/recuperar" element={<RecoveryPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/perfil" element={<ProfilePage />} />
+              <Route path="/canchas" element={<CourtsPage />} />
             </Route>
           </Routes>
         </div>

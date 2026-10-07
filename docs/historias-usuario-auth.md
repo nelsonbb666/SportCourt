@@ -23,3 +23,15 @@
 - Contraseñas con hash bcrypt; nunca se almacenan ni devuelven en texto plano.
 - Tokens JWT HS256 (expiración 24 h; reset 30 min).
 - Rutas protegidas: `/perfil` exige sesión (frontend `ProtectedRoute`, backend dependencia `get_current_user`).
+
+---
+
+## Gestión de Canchas — Consultar Cancha (Gherkin)
+
+**Escenario: Consulta exitosa de canchas.**
+- Dado que he iniciado sesión → `GET /api/v1/courts` con JWT.
+- Cuando selecciono "CONSULTAR CANCHA" → Navbar y Home muestran el enlace; ruta protegida `/canchas`.
+- Entonces muestra las canchas registradas → grid de tarjetas (`CourtsPage.tsx` + `CourtCard.tsx`).
+- Y muestra nombre, tipo y ubicación → cada tarjeta incluye nombre, deporte (badge) y dirección, además de capacidad, precio/hora y disponibilidad.
+
+Extra: filtros por nombre, tipo de deporte y solo disponibles; endpoint de disponibilidad horaria `GET /courts/{id}/availability?day=`.
