@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/SportCourt/", // = nombre del repositorio en GitHub
+  base: "./", // rutas relativas: funciona en GitHub Pages y abriendo index.html directo
   build: {
     outDir: "dist-ghpages",
   },

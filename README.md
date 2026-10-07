@@ -93,7 +93,7 @@ habilitado *Pages → Source: GitHub Actions*.
 
 ```bash
 cd frontend
-npm run build:gh-pages   # genera dist-ghpages/ (base "/SportCourt/", HashRouter)
+npm run build:gh-pages   # genera dist-ghpages/ (base "./" (rutas relativas), HashRouter)
 rm -rf ../docs/assets ../docs/index.html
 cp -r dist-ghpages/. ../docs/
 touch ../docs/.nojekyll
