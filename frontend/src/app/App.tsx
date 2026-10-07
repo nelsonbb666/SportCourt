@@ -1,6 +1,6 @@
 /** Componente raíz: proveedores globales y rutas de SportCourt. */
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Navbar from "../components/layout/Navbar";
+import Navbar from "../components/layout/HomeNavbar";
 import { AuthProvider } from "../context/AuthContext";
 import ProtectedRoute from "../routes/ProtectedRoute";
 import HomePage from "../pages/HomePage";
