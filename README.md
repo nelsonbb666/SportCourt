@@ -96,23 +96,28 @@ habilitado *Pages → Source: GitHub Actions*.
 
 ```bash
 cd frontend
-npm run build:gh-pages   # genera dist-ghpages/ (base "./" (rutas relativas), HashRouter)
-rm -rf ../docs/assets ../docs/index.html
-cp -r dist-ghpages/. ../docs/
+npm run build:gh-pages   # genera dist-ghpages/index.html AUTOCONTENIDO (un solo archivo)
+cp dist-ghpages/index.html ../docs/index.html
 touch ../docs/.nojekyll
 git add docs && git commit -m "chore: update GitHub Pages build"
 ```
 
 Notas:
+- El build de Pages usa el plugin `vite-plugin-singlefile`: TODO el JS y CSS queda
+  incrustado dentro de `docs/index.html` (un único archivo, sin carpeta `assets/`).
+  Esto es necesario porque los navegadores BLOQUEAN los scripts módulo externos
+  cuando se abre un archivo con `file://`; así, al descargar la carpeta y hacer
+  doble clic en `index.html`, la página se ve y funciona sin servidor local.
 - ⚠️ La carpeta `docs/` es la raíz pública del sitio: debe contener ÚNICAMENTE
-  el build (`index.html`, `assets/`, `.nojekyll`). Si hay archivos `.md` ahí,
-  GitHub Pages los renderiza como página (por eso antes se veía el README en
-  lugar de la app). La documentación va en `docs.md` en la raíz o en `documentation/`.
+  `index.html` y `.nojekyll`. Si hay archivos `.md` ahí, GitHub Pages los
+  renderiza como página (por eso antes se veía el README en lugar de la app).
+  La documentación va en `docs.md` en la raíz o en `documentation/`.
 - Se usa `HashRouter`, por lo que las rutas funcionan aunque se abra el
   `index.html` directamente desde el disco (`file://`) o desde Pages sin
   configuración SPA extra.
-- Los recursos del build se referencian con ruta relativa, así que abrir
-  `docs/index.html` en local muestra la página correctamente.
+- El diseño es RESPONSIVE: se adapta a móvil (≤640px), tablet (641–900px),
+  escritorio (≥1200px) y pantallas ultra-anchas (≥1600px), con tipografías y
+  espaciados fluidos (`clamp()`), cuadrículas autoajustables y menú envolvedor.
 - La API no está desplegada públicamente; si más adelante se despliega el
   backend, definir la variable repo `VITE_API_URL` (p. ej.
   `https://mi-backend.onrender.com`) en Settings → Secrets and variables →
