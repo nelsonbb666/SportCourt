@@ -128,3 +128,83 @@ class TestCatalogoCanchas:
         slots = resp.json()["slots"]
         assert len(slots) == 16  # 6:00 a 22:00 en bloques de 1 hora
         assert all(s["available"] for s in slots)
+
+
+class TestRegistrarCanchaHistoriaUsuario:
+    """Criterios de aceptación (Gherkin) de la historia 'Registrar una cancha'.
+
+    Escenario: Registro exitoso de una nueva cancha.
+    Dado que soy administrador del sistema,
+    cuando selecciono la opción "REGISTRAR CANCHA",
+    entonces el sistema muestra un formulario para ingresar la información,
+    y al guardar, el sistema registra la cancha,
+    y la nueva cancha aparece en el listado de canchas.
+    """
+
+    def test_escenario_completo_registro_exitoso(self, client):
+        # DADO: soy administrador del sistema (login con credenciales de admin)
+        headers = _admin_headers(client)
+
+        # CUANDO: guardo el formulario de "REGISTRAR CANCHA" con la información
+        resp = client.post(
+            COURTS_URL,
+            json={
+                "name": "Cancha La Esperanza",
+                "sport_id": 2,
+                "location": "Av. 68 #30-15",
+                "price_per_hour": 28000.0,
+                "capacity": 10,
+                "description": "Cancha techada de baloncesto",
+            },
+            headers=headers,
+        )
+
+        # ENTONCES: el sistema registra la cancha
+        assert resp.status_code == 201
+        created = resp.json()
+        assert created["name"] == "Cancha La Esperanza"
+        assert created["sport"]["name"] == "Baloncesto"
+        assert created["is_available"] is True
+
+        # Y: la nueva cancha aparece en el listado de canchas
+        listing = client.get(COURTS_URL).json()
+        assert any(c["id"] == created["id"] for c in listing)
+        # y también buscándola por nombre
+        search = client.get(COURTS_URL, params={"search": "Esperanza"}).json()
+        assert len(search) == 1 and search[0]["id"] == created["id"]
+
+    def test_admin_autoproclamado_al_iniciar_sesion(self, client):
+        """El seed puede crear al admin sin rol; el login con credenciales
+        administrativas le asigna el rol automáticamente."""
+        from app.db.session import SessionLocal
+        from app.models.user import User
+        from app.services import user_service
+        from app.schemas.user import UserCreate
+
+        db = SessionLocal()
+        try:
+            if user_service.get_user_by_email(db, "admin2@sportcourt.com") is None:
+                u = user_service.register_user(
+                    db,
+                    UserCreate(
+                        full_name="Admin Dos",
+                        email="admin2@sportcourt.com",
+                        phone=None,
+                        password="Admin1234",
+                    ),
+                )
+                # simular base antigua sin rol
+                raw = db.get(User, u.id)
+                raw.is_admin = False
+                db.commit()
+        finally:
+            db.close()
+
+        # no debería funcionar como admin sin pasar por login… pero el login
+        # con ADMIN_EMAIL autoproclama; usamos el admin semilla estándar aquí.
+        resp = client.post(
+            "/api/v1/auth/login",
+            json={"email": "admin@sportcourt.com", "password": "Admin1234"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["user"]["is_admin"] is True

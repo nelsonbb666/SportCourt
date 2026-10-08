@@ -9,12 +9,13 @@
 .home .navbar {
   position: sticky; top: 0; z-index: 50;
   background: #15803d; color: #fff;
-  padding: 0.9rem 2rem;
+  padding: 0.9rem clamp(1rem, 4vw, 2.5rem);
   display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 0.6rem 1.25rem;
   box-shadow: 0 2px 12px rgba(21, 128, 61, 0.25);
 }
 .home .navbar-brand { font-weight: 800; font-size: 1.3rem; color: #fff; text-decoration: none; letter-spacing: 0.3px; }
-.home .navbar-links { display: flex; gap: 1.25rem; align-items: center; }
+.home .navbar-links { display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
 .home .navbar-links a { color: #dcfce7; text-decoration: none; font-weight: 600; font-size: 0.92rem; }
 .home .navbar-links a:hover { color: #fff; }
 .home .navbar-user { color: #bbf7d0; font-weight: 600; }
@@ -144,7 +145,40 @@
 }
 .home-footer strong { color: #fff; }
 
+/* ============================================================
+   RESPONSIVE — móvil / tablet / escritorio / pantallas grandes
+   ============================================================ */
+
+/* Móviles (≤640px) */
 @media (max-width: 640px) {
-  .home .navbar { flex-direction: column; gap: 0.75rem; }
-  .home-hero { padding: 3.5rem 1rem 5rem; }
+  .home .navbar { padding: 0.7rem 1rem; }
+  .home-hero { padding: 3rem 1rem 4.5rem; }
+  .home-hero p { font-size: 1rem; }
+  .home-section { padding: 2.5rem 1rem 0.5rem; }
+  .home-courts-inner { padding: 2.5rem 1rem; }
+  .home-cta-band { margin: 2.5rem 1rem 0; padding: 2rem 1.25rem; border-radius: 14px; }
+  .hero-actions .btn-hero-primary, .hero-actions .btn-hero-secondary,
+  .home-cta-band .btn-hero-primary { width: 100%; }
+  .features-grid { grid-template-columns: 1fr; }
+  .courts-preview-grid { grid-template-columns: 1fr; }
+  .steps-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
+}
+
+/* Tablets (641–900px) */
+@media (min-width: 641px) and (max-width: 900px) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .courts-preview-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Escritorio grande (≥1200px) */
+@media (min-width: 1200px) {
+  .home-section, .home-courts-inner { max-width: 1200px; }
+  .home-cta-band { max-width: 1140px; }
+  .features-grid { grid-template-columns: repeat(4, 1fr); }
+  .courts-preview-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Ultra-wide (≥1600px) */
+@media (min-width: 1600px) {
+  .home-section, .home-courts-inner { max-width: 1320px; }
 }

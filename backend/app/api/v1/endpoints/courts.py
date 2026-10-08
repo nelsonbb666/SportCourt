@@ -4,7 +4,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_admin
 from app.db.session import get_db
 from app.models.court import Court
 from app.models.user import User
@@ -55,6 +55,7 @@ def get_court(court_id: int, db: Session = Depends(get_db)) -> Court:
 
 
 def _require_admin(user: User) -> None:
+    """Revalidación defensiva: get_current_admin ya garantiza el rol."""
     if not user.is_admin:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
@@ -65,7 +66,8 @@ def _require_admin(user: User) -> None:
 @router.post("", response_model=CourtOut, status_code=status.HTTP_201_CREATED,
              summary="Crear cancha (admin)")
 def create_court(payload: CourtCreate, db: Session = Depends(get_db),
-                 user: User = Depends(get_current_user)) -> Court:
+                 user: User = Depends(get_current_admin)) -> Court:
+    """Registra una nueva cancha en el sistema (solo administradores)."""
     _require_admin(user)
     try:
         return court_service.create_court(db, payload)
@@ -79,7 +81,7 @@ def create_court(payload: CourtCreate, db: Session = Depends(get_db),
 
 @router.put("/{court_id}", response_model=CourtOut, summary="Actualizar cancha (admin)")
 def update_court(court_id: int, payload: CourtUpdate, db: Session = Depends(get_db),
-                 user: User = Depends(get_current_user)) -> Court:
+                 user: User = Depends(get_current_admin)) -> Court:
     _require_admin(user)
     court = court_service.get_court(db, court_id)
     if court is None:
@@ -94,7 +96,7 @@ def update_court(court_id: int, payload: CourtUpdate, db: Session = Depends(get_
 @router.delete("/{court_id}", status_code=status.HTTP_204_NO_CONTENT,
                summary="Eliminar cancha (admin)")
 def delete_court(court_id: int, db: Session = Depends(get_db),
-                 user: User = Depends(get_current_user)) -> None:
+                 user: User = Depends(get_current_admin)) -> None:
     _require_admin(user)
     court = court_service.get_court(db, court_id)
     if court is None:
