@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 horas
 
+    # Semilla de administrador (creada automáticamente al arrancar en desarrollo)
+    ADMIN_EMAIL: str = "admin@sportcourt.com"
+    ADMIN_PASSWORD: str = "Admin1234"
+    ADMIN_FULL_NAME: str = "Administrador SportCourt"
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
 

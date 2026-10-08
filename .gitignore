@@ -1,11 +1,8 @@
-node_modules/
-frontend/node_modules/
+# Compiled and build artifacts
 __pycache__/
 *.pyc
+
+# Environment
 .env
-.venv/
-venv/
-dist/
-dist-ghpages/
-*.tsbuildinfo
-.DS_Store
+.env.local
+*.env.*

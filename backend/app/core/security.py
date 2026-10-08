@@ -28,12 +28,22 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-def create_access_token(subject: str | int, expires_delta: timedelta | None = None) -> str:
-    """Crea un token JWT de acceso cuyo 'sub' es el id del usuario."""
+def create_access_token(
+    subject: str | int,
+    expires_delta: timedelta | None = None,
+    is_admin: bool = False,
+) -> str:
+    """Crea un token JWT de acceso cuyo 'sub' es el id del usuario.
+
+    Incluye la reclamación 'admin' para que el backend pueda verificar el rol
+    sin depender solo del estado en base de datos.
+    """
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode: dict[str, Any] = {"sub": str(subject), "exp": expire}
+    if is_admin:
+        to_encode["admin"] = True
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
@@ -44,3 +54,12 @@ def decode_access_token(token: str) -> str | None:
         return payload.get("sub")
     except JWTError:
         return None
+
+
+def token_is_admin(token: str) -> bool:
+    """Indica si un token válido porta la reclamación de administrador."""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        return bool(payload.get("admin")) and "exp" in payload
+    except JWTError:
+        return False

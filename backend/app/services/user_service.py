@@ -2,6 +2,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
@@ -54,9 +55,19 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
 
 
 def login(db: Session, email: str, password: str) -> tuple[User, str]:
-    """Autentica y devuelve (usuario, token_jwt)."""
+    """Autentica y devuelve (usuario, token_jwt).
+
+    El rol de administrador se autoproclama la primera vez que se inicia sesión
+    con las credenciales semilla configuradas (ADMIN_EMAIL/ADMIN_PASSWORD), de
+    modo que el sistema cuente siempre con un admin sin migraciones extra.
+    """
     user = authenticate_user(db, email, password)
-    token = create_access_token(subject=user.id)
+    if user.email.lower() == settings.ADMIN_EMAIL.lower() and not user.is_admin:
+        user.is_admin = True
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    token = create_access_token(subject=user.id, is_admin=user.is_admin)
     return user, token
 
 
