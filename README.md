@@ -44,7 +44,10 @@ SportCourt/
 │   ├── public/             # Estáticos servidos tal cual
 │   └── index.html
 │
-├── docs/                   # Documentación del proyecto
+├── docs/                   # ⚠️ Build estático publicado en GitHub Pages
+│                           #    (SOLO index.html + assets/ + .nojekyll; NO
+│                           #    guardar aquí documentación .md, o Jekyll/Pages
+│                           #    la renderizará como la página del sitio)
 ├── scripts/                # Scripts utilitarios (setup, deploy, CI)
 ├── .github/workflows/      # Integración continua (si aplica)
 └── docker-compose.yml      # Servicios compartidos (BD, etc.)
@@ -79,6 +82,41 @@ npm install
 npm run dev
 # App: http://localhost:5173
 ```
+
+## Publicación en GitHub Pages ✅
+
+La web está publicada desde la rama `main` usando la carpeta `docs/` como origen
+(Settings → Pages → Branch: `main` / folder: `/docs`). Hay dos formas de actualizarla:
+
+**1. Automática (recomendada):** el workflow `.github/workflows/deploy.yml`
+compila el frontend y publica el sitio en cada push a `main`. Requiere tener
+habilitado *Pages → Source: GitHub Actions*.
+
+**2. Manual:** compilar y copiar el resultado a `docs/`:
+
+```bash
+cd frontend
+npm run build:gh-pages   # genera dist-ghpages/ (base "./" (rutas relativas), HashRouter)
+rm -rf ../docs/assets ../docs/index.html
+cp -r dist-ghpages/. ../docs/
+touch ../docs/.nojekyll
+git add docs && git commit -m "chore: update GitHub Pages build"
+```
+
+Notas:
+- ⚠️ La carpeta `docs/` es la raíz pública del sitio: debe contener ÚNICAMENTE
+  el build (`index.html`, `assets/`, `.nojekyll`). Si hay archivos `.md` ahí,
+  GitHub Pages los renderiza como página (por eso antes se veía el README en
+  lugar de la app). La documentación va en `docs.md` en la raíz o en `documentation/`.
+- Se usa `HashRouter`, por lo que las rutas funcionan aunque se abra el
+  `index.html` directamente desde el disco (`file://`) o desde Pages sin
+  configuración SPA extra.
+- Los recursos del build se referencian con ruta relativa, así que abrir
+  `docs/index.html` en local muestra la página correctamente.
+- La API no está desplegada públicamente; si más adelante se despliega el
+  backend, definir la variable repo `VITE_API_URL` (p. ej.
+  `https://mi-backend.onrender.com`) en Settings → Secrets and variables →
+  Actions antes de compilar. Sin ella, la web funciona en modo demostración.
 
 ## Estado actual
 
