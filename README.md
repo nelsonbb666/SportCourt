@@ -44,7 +44,10 @@ SportCourt/
 │   ├── public/             # Estáticos servidos tal cual
 │   └── index.html
 │
-├── docs/                   # Documentación del proyecto
+├── docs/                   # ⚠️ Build estático publicado en GitHub Pages
+│                           #    (SOLO index.html + assets/ + .nojekyll; NO
+│                           #    guardar aquí documentación .md, o Jekyll/Pages
+│                           #    la renderizará como la página del sitio)
 ├── scripts/                # Scripts utilitarios (setup, deploy, CI)
 ├── .github/workflows/      # Integración continua (si aplica)
 └── docker-compose.yml      # Servicios compartidos (BD, etc.)
@@ -101,6 +104,10 @@ git add docs && git commit -m "chore: update GitHub Pages build"
 ```
 
 Notas:
+- ⚠️ La carpeta `docs/` es la raíz pública del sitio: debe contener ÚNICAMENTE
+  el build (`index.html`, `assets/`, `.nojekyll`). Si hay archivos `.md` ahí,
+  GitHub Pages los renderiza como página (por eso antes se veía el README en
+  lugar de la app). La documentación va en `docs.md` en la raíz o en `documentation/`.
 - Se usa `HashRouter`, por lo que las rutas funcionan aunque se abra el
   `index.html` directamente desde el disco (`file://`) o desde Pages sin
   configuración SPA extra.
