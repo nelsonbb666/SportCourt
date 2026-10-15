@@ -128,3 +128,184 @@ class TestCatalogoCanchas:
         slots = resp.json()["slots"]
         assert len(slots) == 16  # 6:00 a 22:00 en bloques de 1 hora
         assert all(s["available"] for s in slots)
+
+
+class TestModificarCanchaHistoriaUsuario:
+    """Criterios de aceptación (Gherkin) de la historia 'Modificar la información
+    de una cancha'.
+
+    Escenario: Modificación exitosa de una cancha.
+    Dado que soy administrador,
+    y existe una cancha registrada,
+    cuando selecciono una cancha y elijo la opción "MODIFICAR",
+    entonces el sistema muestra la información actual de la cancha,
+    y puedo modificar sus datos,
+    y al guardar, el sistema actualiza la información correctamente.
+    """
+
+    def test_escenario_completo_modificacion_exitosa(self, client):
+        # DADO: soy administrador y existe una cancha registrada
+        headers = _admin_headers(client)
+        created = client.post(COURTS_URL, json=VALID_COURT, headers=headers).json()
+        court_id = created["id"]
+
+        # CUANDO/ENTONCES: al seleccionar la cancha para MODIFICAR, el sistema
+        # muestra la información actual (detalle con todos los campos)
+        detail = client.get(f"{COURTS_URL}/{court_id}")
+        assert detail.status_code == 200
+        shown = detail.json()
+        assert shown["name"] == "Cancha Central"
+        assert shown["location"] == "Calle 45 #12-34"
+        assert shown["price_per_hour"] == 35000.0
+        assert shown["capacity"] == 12
+        assert shown["sport"]["name"] == "Fútbol"
+
+        # Y PUEDO MODIFICAR SUS DATOS / AL GUARDAR el sistema actualiza
+        modified = {
+            "name": "Cancha Central Renovada",
+            "location": "Carrera 50 #10-20",
+            "price_per_hour": 40000.0,
+            "capacity": 14,
+            "description": "Césped sintético renovado 2026",
+            "is_available": True,
+        }
+        resp = client.put(f"{COURTS_URL}/{court_id}", json=modified, headers=headers)
+        assert resp.status_code == 200
+        updated = resp.json()
+        for key, value in modified.items():
+            assert updated[key] == value
+        assert updated["id"] == court_id
+
+        # La información modificada persiste (se vuelve a consultar)
+        refetched = client.get(f"{COURTS_URL}/{court_id}").json()
+        assert refetched["name"] == "Cancha Central Renovada"
+        assert refetched["price_per_hour"] == 40000.0
+
+        # Y la cancha modificada sigue apareciendo en el listado con sus nuevos datos
+        listing = client.get(COURTS_URL).json()
+        match = [c for c in listing if c["id"] == court_id]
+        assert len(match) == 1
+        assert match[0]["name"] == "Cancha Central Renovada"
+
+    def test_modificar_parcialmente(self, client):
+        """MODIFICAR permite cambiar solo algunos campos; los demás se conservan."""
+        h = _admin_headers(client)
+        court_id = client.post(COURTS_URL, json=VALID_COURT, headers=h).json()["id"]
+        resp = client.put(f"{COURTS_URL}/{court_id}",
+                          json={"price_per_hour": 45000.0}, headers=h)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["price_per_hour"] == 45000.0
+        assert data["name"] == VALID_COURT["name"]  # intacto
+        assert data["location"] == VALID_COURT["location"]  # intacto
+
+    def test_marcar_no_disponible(self, client):
+        h = _admin_headers(client)
+        court_id = client.post(COURTS_URL, json=VALID_COURT, headers=h).json()["id"]
+        resp = client.put(f"{COURTS_URL}/{court_id}",
+                          json={"is_available": False}, headers=h)
+        assert resp.status_code == 200
+        assert resp.json()["is_available"] is False
+
+    def test_modificar_sin_token_no_permitido(self, client):
+        h = _admin_headers(client)
+        court_id = client.post(COURTS_URL, json=VALID_COURT, headers=h).json()["id"]
+        resp = client.put(f"{COURTS_URL}/{court_id}", json={"name": "Otra"})
+        assert resp.status_code == 401
+
+    def test_modificar_no_admin_prohibido(self, client):
+        h = _admin_headers(client)
+        court_id = client.post(COURTS_URL, json=VALID_COURT, headers=h).json()["id"]
+        resp = client.put(
+            f"{COURTS_URL}/{court_id}",
+            json={"name": "Otra"},
+            headers=_register_and_login(client, "intruso@test.com"),
+        )
+        assert resp.status_code == 403
+
+    def test_modificar_cancha_inexistente(self, client):
+        resp = client.put(f"{COURTS_URL}/9999", json={"name": "Fantasma"},
+                          headers=_admin_headers(client))
+        assert resp.status_code == 404
+
+    def test_modificar_a_nombre_duplicado_rechazado(self, client):
+        h = _admin_headers(client)
+        client.post(COURTS_URL, json=VALID_COURT, headers=h)
+        other = client.post(
+            COURTS_URL,
+            json={**VALID_COURT, "name": "Micro Norte", "sport_id": 5},
+            headers=h,
+        ).json()
+        resp = client.put(f"{COURTS_URL}/{other['id']}",
+                          json={"name": "Cancha Central", "sport_id": 1}, headers=h)
+        assert resp.status_code == 409
+
+    def test_modificar_a_deporte_inexistente(self, client):
+        h = _admin_headers(client)
+        court_id = client.post(COURTS_URL, json=VALID_COURT, headers=h).json()["id"]
+        resp = client.put(f"{COURTS_URL}/{court_id}", json={"sport_id": 999}, headers=h)
+        assert resp.status_code == 422
+
+
+class TestRegistrarCanchaHistoriaUsuario:
+    """Criterios de aceptación (Gherkin) de la historia 'Registrar una cancha'.
+
+    Escenario: Registro exitoso de una nueva cancha.
+    Dado que soy administrador del sistema,
+    cuando selecciono la opción "REGISTRAR CANCHA",
+    entonces el sistema muestra un formulario para ingresar la información,
+    y al guardar, el sistema registra la cancha,
+    y la nueva cancha aparece en el listado de canchas.
+    """
+
+    def test_escenario_completo_registro_exitoso(self, client):
+        # DADO: soy administrador del sistema (login con credenciales de admin)
+        headers = _admin_headers(client)
+
+        # CUANDO: guardo el formulario de "REGISTRAR CANCHA" con la información
+        resp = client.post(
+            COURTS_URL,
+            json={
+                "name": "Cancha La Esperanza",
+                "sport_id": 2,
+                "location": "Av. 68 #30-15",
+                "price_per_hour": 28000.0,
+                "capacity": 10,
+                "description": "Cancha techada de baloncesto",
+            },
+            headers=headers,
+        )
+
+        # ENTONCES: el sistema registra la cancha
+        assert resp.status_code == 201
+        created = resp.json()
+        assert created["name"] == "Cancha La Esperanza"
+        assert created["sport"]["name"] == "Baloncesto"
+        assert created["is_available"] is True
+
+        # Y: la nueva cancha aparece en el listado de canchas
+        listing = client.get(COURTS_URL).json()
+        assert any(c["id"] == created["id"] for c in listing)
+        # y también buscándola por nombre
+        search = client.get(COURTS_URL, params={"search": "Esperanza"}).json()
+        assert len(search) == 1 and search[0]["id"] == created["id"]
+
+    def test_admin_autoproclamado_al_iniciar_sesion(self, client, db_session):
+        """El seed puede crear al admin sin rol; el login con credenciales
+        administrativas le asigna el rol automáticamente (se usa el admin
+        semilla estándar sobre la base en memoria de las pruebas)."""
+        from app.models.user import User
+
+        # simular base antigua sin rol sobre la sesión en memoria de la prueba
+        raw = db_session.get(User, 1)
+        assert raw is not None and raw.email == ADMIN_EMAIL
+        raw.is_admin = False
+        db_session.commit()
+
+        # el login con credenciales de administrador autoproclama el rol
+        resp = client.post(
+            "/api/v1/auth/login",
+            json={"email": "admin@sportcourt.com", "password": "Admin1234"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["user"]["is_admin"] is True

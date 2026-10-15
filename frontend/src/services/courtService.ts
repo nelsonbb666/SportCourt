@@ -27,6 +27,18 @@ export interface CourtFilters {
   search?: string;
 }
 
+/** Datos del formulario de administración: alta (CourtCreate) y edición (CourtUpdate). */
+export interface CourtPayload {
+  name: string;
+  sport_id: number;
+  location: string;
+  price_per_hour: number;
+  capacity: number;
+  description?: string | null;
+  image_url?: string | null;
+  is_available?: boolean;
+}
+
 export interface AvailabilitySlot {
   hour: number;
   available: boolean;
@@ -48,4 +60,12 @@ export const courtService = {
 
   getAvailability: (id: number, day: string): Promise<{ slots: AvailabilitySlot[] }> =>
     request(`/courts/${id}/availability?day=${day}`),
+
+  /** REGISTRAR CANCHA: solo administradores (POST /courts). */
+  createCourt: (data: CourtPayload): Promise<Court> =>
+    request<Court>("/courts", { method: "POST", body: data, auth: true }),
+
+  /** MODIFICAR CANCHA: muestra/edición protegida (PUT /courts/:id). */
+  updateCourt: (id: number, data: Partial<CourtPayload>): Promise<Court> =>
+    request<Court>(`/courts/${id}`, { method: "PUT", body: data, auth: true }),
 };

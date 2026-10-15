@@ -6,6 +6,7 @@ export interface User {
   email: string;
   phone: string | null;
   is_active: boolean;
+  is_admin?: boolean;
   created_at: string;
   updated_at: string;
 }

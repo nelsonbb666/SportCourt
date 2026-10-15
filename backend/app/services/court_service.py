@@ -70,6 +70,19 @@ def update_court(db: Session, court: Court, payload: CourtUpdate) -> Court:
     data = payload.model_dump(exclude_unset=True)
     if "sport_id" in data and db.get(SportType, data["sport_id"]) is None:
         raise SportNotFoundError()
+    # Evitar renombrar la cancha a un nombre ya tomado para el mismo deporte
+    new_name = data.get("name")
+    new_sport = data.get("sport_id", court.sport_id)
+    if new_name or "sport_id" in data:
+        duplicate = db.scalar(
+            select(Court).where(
+                Court.name == (new_name or court.name),
+                Court.sport_id == new_sport,
+                Court.id != court.id,
+            )
+        )
+        if duplicate is not None:
+            raise CourtAlreadyExistsError()
     for key, value in data.items():
         setattr(court, key, value)
     db.commit()

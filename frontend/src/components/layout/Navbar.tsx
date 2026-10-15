@@ -19,6 +19,7 @@ export default function Navbar() {
           <>
             <span className="navbar-user">Hola, {user?.full_name.split(" ")[0]}</span>
             <Link to="/canchas">CONSULTAR CANCHA</Link>
+            {user?.is_admin && <Link to="/admin/canchas">GESTIÓN DE CANCHAS</Link>}
             <Link to="/perfil">Mi perfil</Link>
             <button className="btn btn-secondary" onClick={handleLogout}>
               Cerrar sesión
