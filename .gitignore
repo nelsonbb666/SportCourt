@@ -3,3 +3,11 @@ dist/
 build/
 *.tsbuildinfo
 backend/sportcourt.db
+# Compiled and build artifacts
+__pycache__/
+*.pyc
+
+# Environment
+.env
+.env.local
+*.env.*

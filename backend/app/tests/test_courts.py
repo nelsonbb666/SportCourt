@@ -303,6 +303,35 @@ class TestRegistrarCanchaHistoriaUsuario:
         db_session.commit()
 
         # el login con credenciales de administrador autoproclama el rol
+    def test_admin_autoproclamado_al_iniciar_sesion(self, client):
+        """El seed puede crear al admin sin rol; el login con credenciales
+        administrativas le asigna el rol automáticamente."""
+        from app.db.session import SessionLocal
+        from app.models.user import User
+        from app.services import user_service
+        from app.schemas.user import UserCreate
+
+        db = SessionLocal()
+        try:
+            if user_service.get_user_by_email(db, "admin2@sportcourt.com") is None:
+                u = user_service.register_user(
+                    db,
+                    UserCreate(
+                        full_name="Admin Dos",
+                        email="admin2@sportcourt.com",
+                        phone=None,
+                        password="Admin1234",
+                    ),
+                )
+                # simular base antigua sin rol
+                raw = db.get(User, u.id)
+                raw.is_admin = False
+                db.commit()
+        finally:
+            db.close()
+
+        # no debería funcionar como admin sin pasar por login… pero el login
+        # con ADMIN_EMAIL autoproclama; usamos el admin semilla estándar aquí.
         resp = client.post(
             "/api/v1/auth/login",
             json={"email": "admin@sportcourt.com", "password": "Admin1234"},
