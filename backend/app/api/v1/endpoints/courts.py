@@ -91,6 +91,9 @@ def update_court(court_id: int, payload: CourtUpdate, db: Session = Depends(get_
     except SportNotFoundError:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
                             detail="El deporte indicado no existe") from None
+    except CourtAlreadyExistsError:
+        raise HTTPException(status.HTTP_409_CONFLICT,
+                            detail="Ya existe otra cancha con ese nombre para ese deporte") from None
 
 
 @router.delete("/{court_id}", status_code=status.HTTP_204_NO_CONTENT,
