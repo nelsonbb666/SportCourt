@@ -5,6 +5,9 @@
  *  - "Modificar la información de una cancha": el admin selecciona una cancha,
  *    elige MODIFICAR, ve la información actual precargada, la edita y al guardar
  *    el sistema actualiza los datos correctamente.
+ *  - "Eliminar una cancha": el admin selecciona una cancha, elige ELIMINAR, el
+ *    sistema solicita confirmar; al confirmar la cancha se elimina y deja de
+ *    aparecer en el listado.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Alert from "../components/ui/Alert";
@@ -104,6 +107,42 @@ export default function AdminCourtsPage() {
     setMode("hidden");
     setEditingId(null);
     setFeedback(null);
+  };
+
+  // Estado de la eliminación con confirmación (historia "Eliminar una cancha")
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+
+  const askDelete = (court: Court) => {
+    setFeedback(null);
+    setDeletingId(court.id);
+  };
+
+  const cancelDelete = () => setDeletingId(null);
+
+  const confirmDelete = async () => {
+    if (deletingId === null) return;
+    const court = courts.find((c) => c.id === deletingId);
+    setDeleteBusy(true);
+    try {
+      await courtService.deleteCourt(deletingId);
+      // La cancha deja de aparecer en el listado (se retira localmente y se refresca)
+      setCourts((prev) => prev.filter((c) => c.id !== deletingId));
+      if (editingId === deletingId) closeForm();
+      setDeletingId(null);
+      setFeedback({
+        kind: "success",
+        text: `🗑️ La cancha "${court?.name ?? ""}" fue eliminada y ya no aparece en el listado.`,
+      });
+      await loadCourts();
+    } catch (err) {
+      setFeedback({
+        kind: "error",
+        text: err instanceof Error ? err.message : "No se pudo eliminar la cancha",
+      });
+    } finally {
+      setDeleteBusy(false);
+    }
   };
 
   const validationError = useMemo(() => {
@@ -334,13 +373,46 @@ export default function AdminCourtsPage() {
                 </span>
                 <p className="court-detail">📍 {c.location} · 💰 {c.price_per_hour} COP/h · 👥 {c.capacity}</p>
               </div>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => openEdit(c)}
-              >
-                ✏️ MODIFICAR
-              </button>
+              <div className="admin-court-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => openEdit(c)}
+                >
+                  ✏️ MODIFICAR
+                </button>
+                {/* Opción "ELIMINAR": el sistema solicita confirmar antes de retirar */}
+                {deletingId === c.id ? (
+                  <div className="delete-confirm" role="alertdialog" aria-label="Confirmar eliminación">
+                    <span>¿Eliminar «{c.name}»?</span>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={confirmDelete}
+                      disabled={deleteBusy}
+                    >
+                      {deleteBusy ? "Eliminando…" : "SÍ, ELIMINAR"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={cancelDelete}
+                      disabled={deleteBusy}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => askDelete(c)}
+                    disabled={deleteBusy}
+                  >
+                    🗑️ ELIMINAR
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
