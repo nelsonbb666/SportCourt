@@ -68,4 +68,8 @@ export const courtService = {
   /** MODIFICAR CANCHA: muestra/edición protegida (PUT /courts/:id). */
   updateCourt: (id: number, data: Partial<CourtPayload>): Promise<Court> =>
     request<Court>(`/courts/${id}`, { method: "PUT", body: data, auth: true }),
+
+  /** ELIMINAR CANCHA: retira la cancha del sistema (DELETE /courts/:id). */
+  deleteCourt: (id: number): Promise<void> =>
+    request<void>(`/courts/${id}`, { method: "DELETE", auth: true }),
 };

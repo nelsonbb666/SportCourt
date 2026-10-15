@@ -90,6 +90,28 @@ def update_court(db: Session, court: Court, payload: CourtUpdate) -> Court:
     return court
 
 
+class CourtHasActiveReservationsError(Exception):
+    """La cancha no puede eliminarse porque tiene reservas futuras activas."""
+
+
 def delete_court(db: Session, court: Court) -> None:
+    """Elimina definitivamente una cancha del sistema.
+
+    No permite retirar canchas que aún tienen reservas futuras activas
+    (confirmadas o pendientes), para no afectar a los clientes.
+    """
+    from datetime import date
+
+    from app.models.reservation import Reservation
+
+    active = db.scalar(
+        select(Reservation.id).where(
+            Reservation.court_id == court.id,
+            Reservation.status == "confirmed",
+            Reservation.date >= date.today(),
+        ).limit(1)
+    )
+    if active is not None:
+        raise CourtHasActiveReservationsError()
     db.delete(court)
     db.commit()

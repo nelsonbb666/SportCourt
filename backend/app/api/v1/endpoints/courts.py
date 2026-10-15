@@ -10,7 +10,11 @@ from app.models.court import Court
 from app.models.user import User
 from app.schemas.court import CourtCreate, CourtOut, CourtUpdate, SportOut
 from app.services import court_service
-from app.services.court_service import CourtAlreadyExistsError, SportNotFoundError
+from app.services.court_service import (
+    CourtAlreadyExistsError,
+    CourtHasActiveReservationsError,
+    SportNotFoundError,
+)
 
 router = APIRouter(prefix="/courts", tags=["canchas"])
 
@@ -100,8 +104,15 @@ def update_court(court_id: int, payload: CourtUpdate, db: Session = Depends(get_
                summary="Eliminar cancha (admin)")
 def delete_court(court_id: int, db: Session = Depends(get_db),
                  user: User = Depends(get_current_admin)) -> None:
+    """Retira una cancha del sistema y del listado (solo administradores)."""
     _require_admin(user)
     court = court_service.get_court(db, court_id)
     if court is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="La cancha no existe")
-    court_service.delete_court(db, court)
+    try:
+        court_service.delete_court(db, court)
+    except CourtHasActiveReservationsError:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            detail="No se puede eliminar: la cancha tiene reservas futuras confirmadas",
+        ) from None

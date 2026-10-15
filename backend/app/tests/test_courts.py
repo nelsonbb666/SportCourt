@@ -338,3 +338,125 @@ class TestRegistrarCanchaHistoriaUsuario:
         )
         assert resp.status_code == 200
         assert resp.json()["user"]["is_admin"] is True
+
+
+class TestEliminarCanchaHistoriaUsuario:
+    """Criterios de aceptación (Gherkin) de la historia 'Eliminar una cancha'.
+
+    Escenario: Eliminación exitosa de una cancha.
+    Dado que soy administrador,
+    y existe una cancha registrada,
+    cuando selecciono la cancha y elijo la opción "ELIMINAR",
+    entonces el sistema solicita confirmar la eliminación,
+    y al confirmar, el sistema elimina la cancha,
+    y la cancha deja de aparecer en el listado.
+    """
+
+    def test_escenario_completo_eliminacion_exitosa(self, client):
+        # DADO: soy administrador y existe una cancha registrada
+        headers = _admin_headers(client)
+        created = client.post(COURTS_URL, json=VALID_COURT, headers=headers).json()
+        court_id = created["id"]
+        assert any(c["id"] == court_id for c in client.get(COURTS_URL).json())
+
+        # CUANDO/ENTONCES: el admin confirma la eliminación (el frontend muestra
+        # un diálogo de confirmación; al confirmar se envía DELETE /courts/{id})
+        resp = client.delete(f"{COURTS_URL}/{court_id}", headers=headers)
+        assert resp.status_code == 204
+
+        # Y: la cancha es eliminada del sistema (ya no existe)
+        assert client.get(f"{COURTS_URL}/{court_id}").status_code == 404
+
+        # Y: la cancha deja de aparecer en el listado
+        listing = client.get(COURTS_URL).json()
+        assert not any(c["id"] == court_id for c in listing)
+
+    def test_confirmar_y_eliminar_deja_de_aparecer_en_busqueda(self, client):
+        """Tras eliminar, la cancha tampoco aparece en búsquedas por nombre."""
+        h = _admin_headers(client)
+        created = client.post(
+            COURTS_URL, json={**VALID_COURT, "name": "La Eliminada"}, headers=h
+        ).json()
+        assert client.delete(f"{COURTS_URL}/{created['id']}", headers=h).status_code == 204
+        assert client.get(COURTS_URL, params={"search": "Eliminada"}).json() == []
+
+    def test_eliminar_sin_token_no_permitido(self, client):
+        h = _admin_headers(client)
+        court_id = client.post(COURTS_URL, json=VALID_COURT, headers=h).json()["id"]
+        resp = client.delete(f"{COURTS_URL}/{court_id}")
+        assert resp.status_code == 401
+        # La cancha sigue existiendo (no se eliminó sin confirmación autorizada)
+        assert client.get(f"{COURTS_URL}/{court_id}").status_code == 200
+
+    def test_eliminar_no_admin_prohibido(self, client):
+        h = _admin_headers(client)
+        court_id = client.post(COURTS_URL, json=VALID_COURT, headers=h).json()["id"]
+        resp = client.delete(
+            f"{COURTS_URL}/{court_id}",
+            headers=_register_and_login(client, "intruso_del@test.com"),
+        )
+        assert resp.status_code == 403
+        assert client.get(f"{COURTS_URL}/{court_id}").status_code == 200
+
+    def test_eliminar_cancha_inexistente(self, client):
+        resp = client.delete(f"{COURTS_URL}/9999", headers=_admin_headers(client))
+        assert resp.status_code == 404
+
+    def test_no_se_puede_eliminar_con_reservas_futuras(self, client, db_session):
+        """Protección: una cancha con reservas futuras confirmadas no se elimina."""
+        from datetime import date, time, timedelta
+
+        from app.models.reservation import Reservation
+
+        h = _admin_headers(client)
+        user_h = _register_and_login(client, "cliente_del@test.com")
+        court_id = client.post(COURTS_URL, json=VALID_COURT, headers=h).json()["id"]
+
+        manana = date.today() + timedelta(days=1)
+        res = client.post(
+            "/api/v1/reservations",
+            json={
+                "court_id": court_id,
+                "date": manana.isoformat(),
+                "start_time": time(8, 0).isoformat(),
+                "end_time": time(9, 0).isoformat(),
+            },
+            headers=user_h,
+        )
+        assert res.status_code == 201
+
+        resp = client.delete(f"{COURTS_URL}/{court_id}", headers=h)
+        assert resp.status_code == 409
+        assert "reservas" in resp.json()["detail"].lower()
+        # La cancha sigue en el listado
+        assert any(c["id"] == court_id for c in client.get(COURTS_URL).json())
+
+    def test_si_se_puede_eliminar_con_reservas_pasadas(self, client, db_session):
+        """Las reservas antiguas (pasadas/canceladas) no bloquean la eliminación."""
+        from datetime import date, time, timedelta
+
+        from app.models.reservation import Reservation
+
+        h = _admin_headers(client)
+        user_h = _register_and_login(client, "cliente_hist@test.com")
+        court_id = client.post(COURTS_URL, json=VALID_COURT, headers=h).json()["id"]
+
+        # crear cancha, reservar mañana, cancelar la reserva y luego eliminar
+        res = client.post(
+            "/api/v1/reservations",
+            json={
+                "court_id": court_id,
+                "date": (date.today() + timedelta(days=1)).isoformat(),
+                "start_time": time(10, 0).isoformat(),
+                "end_time": time(11, 0).isoformat(),
+            },
+            headers=user_h,
+        )
+        assert res.status_code == 201
+        rid = res.json()["id"]
+        cancel = client.delete(f"/api/v1/reservations/{rid}", headers=user_h)
+        assert cancel.status_code in (200, 204)
+
+        resp = client.delete(f"{COURTS_URL}/{court_id}", headers=h)
+        assert resp.status_code == 204
+        assert client.get(f"{COURTS_URL}/{court_id}").status_code == 404
