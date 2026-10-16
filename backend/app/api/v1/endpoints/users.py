@@ -31,12 +31,17 @@ router = APIRouter(prefix="/auth", tags=["usuarios"])
 
 @router.post(
     "/register",
-    response_model=UserOut,
+    response_model=Token,
     status_code=status.HTTP_201_CREATED,
     summary="Registrar usuario",
 )
-def register_user(payload: UserCreate, db: Session = Depends(get_db)) -> User:
-    """Registra un nuevo usuario en el sistema de reservas."""
+def register_user(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
+    """Registra un nuevo usuario y abre sesión automáticamente.
+
+    Devuelve el token JWT igual que /auth/login, de modo que el frontend puede
+    redirigir directamente al listado de canchas/reservas sin volver a iniciar
+    sesión. Los datos quedan guardados en el servidor para futuros ingresos.
+    """
     try:
         user = user_service.register_user(db, payload)
     except EmailAlreadyExistsError:
@@ -44,7 +49,8 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)) -> User:
             status_code=status.HTTP_409_CONFLICT,
             detail="El correo electrónico ya está registrado",
         ) from None
-    return user
+    token = create_access_token(subject=user.id, is_admin=user.is_admin)
+    return Token(access_token=token, user=UserOut.model_validate(user))
 
 
 @router.post("/login", response_model=Token, summary="Iniciar sesión")

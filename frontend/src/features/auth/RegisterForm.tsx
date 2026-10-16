@@ -6,6 +6,7 @@ import Alert from "../../components/ui/Alert";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { useAuth } from "../../context/AuthContext";
+import { HttpError } from "../../services/api";
 
 export default function RegisterForm() {
   const { register } = useAuth();
@@ -40,10 +41,23 @@ export default function RegisterForm() {
         phone: form.phone.trim() || null,
         password: form.password,
       });
-      setSuccess("✅ ¡Registro exitoso! El usuario fue registrado correctamente. Puedes iniciar sesión.");
-      setTimeout(() => navigate("/login"), 1500);
+      setSuccess("✅ ¡Registro exitoso! Sesión iniciada automáticamente. Te llevamos a las canchas para reservar.");
+      // El registro ya guarda el token de sesión: ir directo al apartado de reservas/canchas.
+      setTimeout(() => navigate("/canchas", { replace: true }), 900);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo completar el registro.");
+      if (err instanceof HttpError && err.status === 405) {
+        setError(
+          "El servidor donde está publicada la página no procesa formularios (solo sirve archivos estáticos). " +
+            "Registra tu cuenta con un backend activo o usa una API pública configurada (VITE_API_URL).",
+        );
+      } else if (err instanceof TypeError) {
+        setError(
+          "No hay conexión con el servidor de la API. Verifica que el backend esté en ejecución " +
+            "o configura VITE_API_URL antes de compilar.",
+        );
+      } else {
+        setError(err instanceof Error ? err.message : "No se pudo completar el registro.");
+      }
     } finally {
       setLoading(false);
     }

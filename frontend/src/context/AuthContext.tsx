@@ -41,7 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return logged;
   }, []);
 
-  const register = useCallback((data: UserRegisterData) => authService.register(data), []);
+  const register = useCallback(async (data: UserRegisterData) => {
+    const registered = await authService.register(data);
+    setUser(registered); // el registro inicia sesión automáticamente
+    return registered;
+  }, []);
 
   const logout = useCallback(async () => {
     await authService.logout();

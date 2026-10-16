@@ -21,13 +21,30 @@ def _register(client, **overrides):
 
 class TestRegistrarUsuario:
     def test_registro_exitoso(self, client):
-        """Escenario: Registro exitoso de un nuevo usuario."""
+        """Escenario: Registro exitoso de un nuevo usuario (abre sesión automáticamente)."""
         resp = _register(client)
         assert resp.status_code == 201
         data = resp.json()
-        assert data["email"] == "ana@example.com"
-        assert data["full_name"] == "Ana Pérez"
-        assert "hashed_password" not in data and "password" not in data
+        # El registro devuelve token + usuario igual que el login
+        assert data["token_type"] == "bearer"
+        assert data["access_token"]
+        user = data["user"]
+        assert user["email"] == "ana@example.com"
+        assert user["full_name"] == "Ana Pérez"
+        assert "hashed_password" not in user and "password" not in user
+
+    def test_registro_inicia_sesion_sin_volver_a_autenticarse(self, client):
+        """Escenario: tras registrarse, los datos quedan guardados y la sesión
+        queda activa; al recargar la página no es necesario volver a iniciar sesión."""
+        resp = _register(client)
+        token = resp.json()["access_token"]
+        # Con ese token se puede acceder al perfil sin hacer login
+        me = client.get(ME_URL, headers={"Authorization": f"Bearer {token}"})
+        assert me.status_code == 200
+        assert me.json()["email"] == "ana@example.com"
+        # Y también se puede consultar el listado de canchas (apartado de reservas)
+        courts = client.get("/api/v1/courts", headers={"Authorization": f"Bearer {token}"})
+        assert courts.status_code == 200
 
     def test_correo_duplicado(self, client):
         _register(client)
