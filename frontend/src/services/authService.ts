@@ -3,8 +3,12 @@ import { clearToken, request, setToken } from "./api";
 import type { AuthResponse, LoginData, User, UserRegisterData, UserUpdateData } from "../types/user";
 
 export const authService = {
-  register: (data: UserRegisterData) =>
-    request<User>("/auth/register", { method: "POST", body: data }),
+  /** Registra y abre sesión automáticamente (el backend devuelve token + usuario). */
+  register: async (data: UserRegisterData): Promise<User> => {
+    const res = await request<AuthResponse>("/auth/register", { method: "POST", body: data });
+    setToken(res.access_token);
+    return res.user;
+  },
 
   login: async (data: LoginData): Promise<User> => {
     const res = await request<AuthResponse>("/auth/login", { method: "POST", body: data });
