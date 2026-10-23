@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consultar canchas | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="privada">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1>🏟️ Consultar cancha</h1>
+      <p class="descripcion">
+        Explora las canchas registradas, filtra por deporte o busca por nombre,
+        y consulta la disponibilidad de horarios de cada una.
+      </p>
+      <div class="hero-acciones" style="margin-top: 0.75rem;">
+        <!-- Solo visible para administradores (lo controla canchas.js) -->
+        <a href="admin-cancha-form.html" id="btn-registrar-cancha" class="btn btn-primario" hidden>REGISTRAR CANCHA</a>
+      </div>
+      <div class="mensaje" id="mensaje-canchas"></div>
+    </section>
+
+    <!-- Filtros -->
+    <section class="filtros" aria-label="Filtros de búsqueda">
+      <div class="campo-filtro">
+        <label for="busqueda-nombre">Buscar por nombre</label>
+        <input type="text" id="busqueda-nombre" placeholder="Ej.: La Estrella" autocomplete="off" />
+      </div>
+      <div class="campo-filtro">
+        <label for="filtro-tipo">Tipo de cancha</label>
+        <select id="filtro-tipo">
+          <option value="">Todos los deportes</option>
+          <option>Fútbol 5</option>
+          <option>Fútbol 7</option>
+          <option>Fútbol 11</option>
+          <option>Baloncesto</option>
+          <option>Tenis</option>
+          <option>Voleibol</option>
+          <option>Pádel</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Listado en tarjetas (se llena dinámicamente desde Firestore) -->
+    <section class="grid-canchas" id="lista-canchas" aria-live="polite"></section>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #2: Gestión de Canchas</footer>
+
+  <script type="module">
+    import "../js/guard.js"; // protege la página y pinta la navbar
+    import { initListadoCanchas } from "../js/canchas.js";
+    initListadoCanchas();
+  </script>
+</body>
+</html>
