@@ -156,3 +156,111 @@ export function traducirErrorFirebase(error, mensajeGenerico = "Ocurrió un erro
   }
   return mensajeGenerico;
 }
+
+/* ---------- Helpers de fecha y hora (Sprint #2) ---------- */
+
+const FECHA_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const HORA_REGEX = /^([01]?\d|2[0-3]):[0-5]\d$/;
+
+/** ¿Formato "YYYY-MM-DD" y fecha real? */
+export function esFechaValida(fecha) {
+  if (!FECHA_REGEX.test(fecha || "")) return false;
+  const d = new Date(`${fecha}T00:00:00`);
+  return !Number.isNaN(d.getTime());
+}
+
+/** ¿Formato "HH:mm"? */
+export function esHoraValida(hora) {
+  return HORA_REGEX.test(hora || "");
+}
+
+/** Convierte "HH:mm" a minutos desde la medianoche (número o NaN). */
+export function horaAMinutos(hora) {
+  if (!esHoraValida(hora)) return NaN;
+  const [h, m] = hora.split(":").map(Number);
+  return h * 60 + m;
+}
+
+/** Convierte minutos desde la medianoche a "HH:mm". */
+export function minutosAHora(minutos) {
+  const h = Math.floor(minutos / 60) % 24;
+  const m = Math.round(minutos) % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+/** Fecha local de hoy como "YYYY-MM-DD" (para el atributo min de <input type=date>). */
+export function hoyISO() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+/** ¿La fecha "YYYY-MM-DD" es anterior a hoy (en hora local)? */
+export function esFechaPasada(fecha) {
+  return esFechaValida(fecha) && fecha < hoyISO();
+}
+
+/** Formatea "YYYY-MM-DD" a un texto legible en español (ej.: "sábado, 25 de octubre de 2026"). */
+export function formatearFechaLarga(fecha) {
+  if (!esFechaValida(fecha)) return fecha;
+  const d = new Date(`${fecha}T12:00:00`);
+  return d.toLocaleDateString("es", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+}
+
+/* ---------- Modal de confirmación propio (sin window.confirm) ---------- */
+
+let resolveModal = null;
+
+function crearEstructuraModal() {
+  if (document.getElementById("modal-fondo")) return;
+  const contenedor = document.createElement("div");
+  contenedor.innerHTML = `
+    <div class="modal-fondo" id="modal-fondo" hidden>
+      <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+        <h3 id="modal-titulo"></h3>
+        <p id="modal-mensaje"></p>
+        <div class="modal-acciones">
+          <button type="button" class="btn btn-contorno" id="modal-cancelar">Cancelar</button>
+          <button type="button" class="btn btn-peligro" id="modal-aceptar">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(contenedor.firstElementChild);
+
+  const fondo = document.getElementById("modal-fondo");
+  document.getElementById("modal-cancelar").addEventListener("click", () => cerrarModal(false));
+  document.getElementById("modal-aceptar").addEventListener("click", () => cerrarModal(true));
+  fondo.addEventListener("click", (e) => {
+    if (e.target === fondo) cerrarModal(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !fondo.hidden) cerrarModal(false);
+  });
+}
+
+function cerrarModal(valor) {
+  const fondo = document.getElementById("modal-fondo");
+  if (fondo) fondo.hidden = true;
+  if (resolveModal) {
+    resolveModal(valor);
+    resolveModal = null;
+  }
+}
+
+/**
+ * Abre un modal de confirmación reutilizable (sin usar confirm() del navegador).
+ * @param {{titulo?: string, mensaje?: string, textoAceptar?: string}} opciones
+ * @returns {Promise<boolean>} true si el usuario confirma.
+ */
+export function confirmarModal({ titulo = "¿Estás seguro?", mensaje = "", textoAceptar = "Confirmar" } = {}) {
+  crearEstructuraModal();
+  document.getElementById("modal-titulo").textContent = titulo;
+  document.getElementById("modal-mensaje").textContent = mensaje;
+  const btnAceptar = document.getElementById("modal-aceptar");
+  btnAceptar.textContent = textoAceptar;
+  document.getElementById("modal-fondo").hidden = false;
+  btnAceptar.focus();
+  return new Promise((resolver) => { resolveModal = resolver; });
+}

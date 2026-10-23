@@ -1,9 +1,10 @@
 # ⚽ Reserva de Canchas
 
-Sistema web para **reserva de canchas deportivas**. Este repositorio contiene actualmente el
-**Sprint #1: Gestión de Usuarios** (registro, inicio de sesión, cierre de sesión, edición de
-perfil y recuperación de contraseña). Los siguientes sprints añadirán la reserva de canchas
-sobre esta misma base.
+Sistema web para **reserva de canchas deportivas**. Este repositorio contiene el
+**Sprint #1: Gestión de Usuarios** (registro, login, perfil, recuperación de contraseña) y el
+**Sprint #2: Gestión de Canchas** (roles de administrador, CRUD de canchas y consulta de
+disponibilidad por fecha). El Sprint #3 añadirá la reserva de horarios sobre el modelo de
+datos `reservas` ya definido aquí.
 
 ## 🧰 Stack
 
@@ -24,15 +25,20 @@ reserva-canchas/
 │   ├── login.html          Inicio de sesión + enlace de recuperación
 │   ├── recuperar.html      Envío de correo de recuperación
 │   ├── perfil.html         Ver/Editar perfil y cambiar contraseña (privada)
-│   └── dashboard.html      Zona privada de bienvenida (base para reservas)
+│   ├── dashboard.html      Zona privada de bienvenida + acceso a canchas
+│   ├── canchas.html        CONSULTAR CANCHA: listado con filtros (privada)
+│   ├── disponibilidad.html Horarios por cancha y fecha (privada)
+│   └── admin-cancha-form.html  REGISTRAR/MODIFICAR cancha (solo admin)
 ├── css/
 │   └── styles.css          Estilos (tema deportivo verde/blanco, responsive)
 ├── js/
 │   ├── firebase-config.js  Inicialización de Firebase (pegar aquí tu configuración)
 │   ├── auth.js             Registro, login, logout, recuperación
 │   ├── perfil.js           Leer y editar perfil
-│   ├── guard.js            Protección de páginas privadas + navbar dinámica
-│   └── utils.js            Validaciones y mensajes en pantalla
+│   ├── guard.js            Protección de páginas + navbar + esAdmin()
+│   ├── canchas.js          Listado, registro, modificación y eliminación de canchas
+│   ├── disponibilidad.js   generarBloques() + consulta de reservas del día
+│   └── utils.js            Validaciones, mensajes, modal de confirmación y helpers de fecha/hora
 ├── assets/                 Imágenes/íconos
 ├── firestore.rules         Reglas de seguridad de Firestore
 ├── .gitignore
@@ -132,11 +138,114 @@ python -m http.server 8000
 - Las páginas privadas (`dashboard.html`, `perfil.html`) están protegidas por `js/guard.js`:
   sin sesión activa redirigen al login.
 
+
+## 🏟️ Sprint #2: Gestión de Canchas
+
+### Roles de usuario
+
+Cada documento de `usuarios` ahora incluye el campo `rol`:
+
+- `"usuario"` → asignado automáticamente al registrarse (ver `js/auth.js`). Puede consultar
+  canchas y disponibilidad.
+- `"admin"` → puede además registrar, modificar y eliminar canchas.
+
+**Cómo crear un administrador:** Firebase Console → *Firestore Database* → colección
+`usuarios` → documento del usuario → editar el campo `rol` y cambiar su valor de `usuario`
+a `admin` → guardar. (No existe autoascenso: las reglas impiden que un usuario se cambie
+el rol a sí mismo.)
+
+La protección de páginas de administrador funciona en dos capas:
+
+1. **Cliente:** `js/guard.js` exporta `esAdmin()` (lee el rol desde Firestore), protege las
+   páginas con `<body data-page="admin">` (redirige al dashboard con mensaje si no eres
+   admin) y muestra en la navbar las opciones de administración solo a administradores.
+2. **Servidor (la seguridad real):** las reglas de `firestore.rules` exigen `esAdmin()` para
+   escribir en `canchas`. Ocultar botones **no es seguridad**: aunque alguien edite el DOM o
+   escriba contra la API directamente, Firestore rechazará la operación.
+
+### Modelo de datos (Firestore)
+
+```
+canchas/{idAuto}
+  nombre: string (único de forma lógica, validado en el formulario)
+  tipo: "Fútbol 5" | "Fútbol 7" | "Fútbol 11" | "Baloncesto" | "Tenis" | "Voleibol" | "Pádel" | ...
+  ubicacion: string
+  descripcion: string (opcional)
+  precioHora: number | null (opcional)
+  horaApertura: "HH:mm"   ej. "08:00"
+  horaCierre: "HH:mm"     ej. "22:00"
+  activa: boolean (por defecto true)
+  creadaEn / actualizadaEn: timestamp
+
+reservas/{idAuto}    ← definido en este sprint; el Sprint #3 escribirá aquí
+  canchaId: string (id del documento en "canchas")
+  usuarioId: string (UID del autor)
+  fecha: "YYYY-MM-DD"
+  horaInicio / horaFin: "HH:mm"
+  estado: "confirmada" | "cancelada"
+  creadaEn: timestamp
+```
+
+La disponibilidad se calcula con `generarBloques(cancha, fecha, reservas)`
+(`js/disponibilidad.js`): genera bloques de **1 hora** entre apertura y cierre, marca como
+`ocupado` cualquier bloque que intersecte una reserva confirmada del día, y como `pasado`
+los bloques de hoy cuya hora de inicio ya pasó. Fechas pasadas: bloqueadas en el formulario
+y validadas en código. El botón **Reservar** aparece deshabilitado con el aviso
+*"Reservar (Sprint #3)"*.
+
+### Publicar las reglas de Firestore (obligatorio tras este sprint)
+
+1. Firebase Console → *Firestore Database → Rules*.
+2. Reemplaza todo el contenido por el de [`firestore.rules`](firestore.rules) y pulsa
+   **Publish**.
+3. Alternativa con Firebase CLI: `firebase deploy --only firestore:rules`.
+
+Sin este paso, las consultas a `canchas`/`reservas` fallarán con *permission-denied*
+(el sitio lo indica con un mensaje en pantalla).
+
+### Datos de ejemplo (3 canchas)
+
+Con una cuenta **admin** con sesión activa, abre cualquier página del sitio, ve a la consola
+del navegador (F12) y ejecuta:
+
+```js
+import("./assets/cargar-datos-ejemplo.js")
+```
+
+El script crea "La Estrella" (Fútbol 5), "El Coliseo" (Baloncesto) y "Racket Park" (Tenis).
+Si ya existen documentos en `canchas`, no duplica nada. (También puedes crearlas a mano con
+el botón **REGISTRAR CANCHA**.)
+
+### ✅ Cómo probar el Sprint #2
+
+**Como usuario normal:**
+1. Regístrate/inicia sesión → la navbar muestra **CONSULTAR CANCHA** (sin opciones de admin).
+2. Abre `pages/canchas.html` → tarjetas con nombre, tipo, ubicación, horario y precio;
+   prueba el filtro por tipo y la búsqueda por nombre. Sin canchas verás *"Aún no hay
+   canchas registradas"*.
+3. Clic en **Ver disponibilidad** → elige cancha y fecha → verás los bloques de 1 hora en
+   verde (disponible), gris (ocupado) y rojo (ya pasó hoy), con leyenda y conteo
+   *"X horarios disponibles de Y"*. Intenta elegir ayer: no se permite.
+4. Si escribes en la barra de direcciones `pages/admin-cancha-form.html`, serás redirigido
+   al dashboard con el mensaje *"No tienes permisos de administrador..."*; e incluso si
+   manipulas el DOM, Firestore rechazará la escritura (reglas).
+
+**Como administrador (cambia `rol` a `"admin"` en Firebase Console primero):**
+1. La navbar agrega **REGISTRAR CANCHA**; deja vacíos nombre/tipo/ubicación/horarios →
+   errores en español; pon cierre ≤ apertura → error; precio negativo → error; repite un
+   nombre existente → error de duplicado.
+2. Guarda una cancha válida → mensaje de éxito y aparece en el listado.
+3. **MODIFICAR** en la tarjeta → el mismo formulario carga los datos actuales → cámbialos →
+   guarda → el listado refleja los cambios y se actualiza `actualizadaEn`.
+4. **ELIMINAR** → modal de confirmación propio con el nombre de la cancha (prueba Cancelar y
+   Escape); confirma → desaparece sin recargar y ves el mensaje de éxito. Si la cancha tiene
+   reservas futuras confirmadas, el modal muestra una advertencia previa.
+
 ## 🗺️ Roadmap
 
 - ✅ Sprint #1: Gestión de usuarios (este entregable)
-- ⏭️ Sprint #2: Catálogo de canchas y disponibilidad
-- ⏭️ Sprint #3: Reservas, calendario y confirmaciones
+- ✅ Sprint #2: Gestión de canchas, roles y disponibilidad (este entregable)
+- ⏭️ Sprint #3: Reservas, calendario y confirmaciones (escribe en la colección `reservas` ya definida)
 
 ## 📄 Licencia
 

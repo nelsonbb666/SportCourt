@@ -401,3 +401,361 @@ footer {
     width: 100%;
   }
 }
+
+/* ============================================================
+   Sprint #2 — Canchas: filtros, tarjetas, disponibilidad, modal
+   ============================================================ */
+
+/* ---------- Barra de filtros del listado ---------- */
+.filtros {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--sombra);
+}
+
+.filtros .campo-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1 1 180px;
+}
+
+.filtros label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gris-suave);
+}
+
+.filtros input,
+.filtros select {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--gris-borde);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--blanco);
+}
+
+/* ---------- Grid de tarjetas de cancha ---------- */
+.grid-canchas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.1rem;
+}
+
+.tarjeta-cancha {
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde);
+  border-left: 5px solid var(--verde);
+  border-radius: var(--radio);
+  padding: 1.1rem 1.2rem;
+  box-shadow: var(--sombra);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tarjeta-cancha h3 {
+  color: var(--verde-oscuro);
+  font-size: 1.1rem;
+}
+
+.tarjeta-cancha .dato {
+  font-size: 0.9rem;
+  color: var(--gris-texto);
+}
+
+.tarjeta-cancha .dato strong {
+  color: var(--gris-suave);
+  font-weight: 600;
+}
+
+.tarjeta-cancha .descripcion-cancha {
+  font-size: 0.87rem;
+  color: var(--gris-suave);
+}
+
+.etiquetas-cancha {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: var(--verde-claro);
+  color: var(--verde-oscuro);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.chip-inactiva {
+  background: #fdecea;
+  color: var(--rojo-error);
+}
+
+.acciones-cancha {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+.btn-mini {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-peligro {
+  background: var(--rojo-error);
+  color: var(--blanco);
+}
+
+.btn-peligro:hover:not(:disabled) {
+  background: #a21b1b;
+}
+
+/* ---------- Estado vacío y carga ---------- */
+.estado-vacio {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  background: var(--blanco);
+  border: 2px dashed var(--gris-borde);
+  border-radius: var(--radio);
+  color: var(--gris-suave);
+}
+
+.indicador-carga {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 2rem;
+  color: var(--verde-oscuro);
+  font-weight: 600;
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--verde-claro);
+  border-top-color: var(--verde);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Bloques de horarios (disponibilidad) ---------- */
+.resumen-disponibilidad {
+  font-weight: 600;
+  color: var(--verde-oscuro);
+  margin: 0.5rem 0 1rem;
+}
+
+.leyenda {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: var(--gris-suave);
+}
+
+.leyenda .cuadro {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: 0.35rem;
+}
+
+.cuadro-disponible { background: var(--verde); }
+.cuadro-ocupado { background: #b9c2cb; }
+.cuadro-pasado { background: #e8a4a4; }
+
+.grid-horarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.7rem;
+}
+
+.bloque-horario {
+  border-radius: 8px;
+  padding: 0.6rem 0.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 1px solid var(--gris-borde);
+}
+
+.bloque-horario .hora {
+  font-size: 0.95rem;
+}
+
+.bloque-disponible {
+  background: var(--verde-claro);
+  border-color: var(--verde);
+  color: var(--verde-oscuro);
+}
+
+.bloque-ocupado {
+  background: #eceff2;
+  color: #7c8794;
+  text-decoration: line-through;
+}
+
+.bloque-pasado {
+  background: #fdecea;
+  border-color: #f2b8b8;
+  color: #b05252;
+}
+
+.bloque-horario button {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: var(--verde);
+  color: var(--blanco);
+  font-weight: 600;
+}
+
+.bloque-horario button:disabled {
+  background: #cfd6dc;
+  color: #7c8794;
+  cursor: not-allowed;
+}
+
+/* ---------- Modal de confirmación ---------- */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 32, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+}
+
+.modal-fondo[hidden] {
+  display: none;
+}
+
+.modal-caja {
+  background: var(--blanco);
+  border-radius: var(--radio);
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+.modal-caja h3 {
+  color: var(--verde-oscuro);
+  margin-bottom: 0.5rem;
+}
+
+.modal-caja p {
+  color: var(--gris-texto);
+  font-size: 0.95rem;
+  margin-bottom: 1.25rem;
+}
+
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* ---------- Responsive extra Sprint #2 ---------- */
+@media (max-width: 600px) {
+  .grid-canchas {
+    grid-template-columns: 1fr;
+  }
+
+  .filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grid-horarios {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+/* ---------- Extra formulario cancha (Sprint #2) ---------- */
+.form-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.form-grupo textarea {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--gris-borde);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: var(--blanco);
+  resize: vertical;
+}
+
+.form-grupo.campo-check label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--gris-texto);
+  cursor: pointer;
+}
+
+.form-grupo.campo-check input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--verde);
+}
+
+.enlace-volver {
+  display: inline-block;
+  margin-top: 1rem;
+  text-align: center;
+  width: 100%;
+  color: var(--verde);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.enlace-volver:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .form-doble {
+    grid-template-columns: 1fr;
+  }
+}
