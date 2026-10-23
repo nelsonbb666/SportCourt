@@ -120,6 +120,18 @@ python -m http.server 8000
 - `develop`: integración del sprint.
 - `feature/sprint-1-gestion-usuarios`: desarrollo del Sprint #1 (merge a `develop` vía PR).
 
+## 🔐 Seguridad
+
+- **Reglas de Firestore** ([`firestore.rules`](firestore.rules)): cada usuario solo puede
+  leer y escribir su propio documento en la colección `usuarios` (`request.auth.uid == uid`).
+  Cualquier otra ruta queda denegada por defecto.
+- **Las contraseñas nunca se guardan en Firestore**: solo viven en Firebase Authentication.
+  El perfil almacena únicamente nombre, teléfono, correo y fecha de creación.
+- La recuperación de contraseña usa el enlace oficial de Firebase (`sendPasswordResetEmail`)
+  y siempre muestra un mensaje genérico para no revelar si un correo existe o no.
+- Las páginas privadas (`dashboard.html`, `perfil.html`) están protegidas por `js/guard.js`:
+  sin sesión activa redirigen al login.
+
 ## 🗺️ Roadmap
 
 - ✅ Sprint #1: Gestión de usuarios (este entregable)

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="privada">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1>👋 ¡Bienvenido!</h1>
+      <p class="descripcion" id="saludo-dashboard">Cargando tu información...</p>
+      <span class="badge-sesion" id="badge-correo">Sesión activa</span>
+    </section>
+
+    <!-- Base para el Sprint #2: aquí se mostrará el catálogo y la reserva de canchas -->
+    <section class="panel">
+      <h2>🏟️ Próximamente: Reserva de canchas</h2>
+      <p class="descripcion">
+        En el Sprint #2 podrás ver las canchas disponibles, consultar horarios y crear tus
+        reservas desde este panel. Mientras tanto, puedes mantener tus datos actualizados
+        en <a href="perfil.html" style="color: var(--verde); font-weight: 600;">Mi perfil</a>.
+      </p>
+    </section>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #1: Gestión de Usuarios</footer>
+
+  <script type="module">
+    // guard.js ya protege esta página (data-page="privada") y pinta la navbar.
+    import "../js/guard.js";
+    import { auth, db } from "../js/firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    onAuthStateChanged(auth, async (usuario) => {
+      if (!usuario) return; // guard.js se encarga de redirigir.
+      const saludo = document.getElementById("saludo-dashboard");
+      const badge = document.getElementById("badge-correo");
+      try {
+        const snap = await getDoc(doc(db, "usuarios", usuario.uid));
+        const nombre = snap.exists() ? snap.data().nombre : "campeón/a";
+        saludo.textContent = `Hola ${nombre}, tu cuenta está lista para reservar canchas.`;
+        badge.textContent = `📧 ${usuario.email}`;
+      } catch (_) {
+        saludo.textContent = "Tu cuenta está lista para reservar canchas.";
+        badge.textContent = `📧 ${usuario.email}`;
+      }
+    });
+  </script>
+</body>
+</html>
