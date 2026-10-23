@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="auth-publica">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="contenedor-formulario">
+      <h1>Crear cuenta</h1>
+      <p class="subtitulo">Completa tus datos para registrarte en el sistema de reservas.</p>
+
+      <!-- Mensajes de éxito / error (sin alert) -->
+      <div id="mensaje" class="mensaje" role="alert" aria-live="polite"></div>
+
+      <form id="form-registro" novalidate>
+        <div class="form-grupo">
+          <label for="nombre">Nombre completo <span class="obligatorio">*</span></label>
+          <input type="text" id="nombre" name="nombre" placeholder="Ej.: María Gómez" autocomplete="name" required />
+        </div>
+
+        <div class="form-grupo">
+          <label for="correo">Correo electrónico <span class="obligatorio">*</span></label>
+          <input type="email" id="correo" name="correo" placeholder="tucorreo@ejemplo.com" autocomplete="email" required />
+        </div>
+
+        <div class="form-grupo">
+          <label for="telefono">Teléfono <span class="obligatorio">*</span></label>
+          <input type="tel" id="telefono" name="telefono" placeholder="Ej.: +57 300 123 4567" autocomplete="tel" required />
+        </div>
+
+        <div class="form-grupo">
+          <label for="password">Contraseña <span class="obligatorio">*</span></label>
+          <input type="password" id="password" name="password" autocomplete="new-password" required />
+          <p class="ayuda">Mínimo 8 caracteres, debe incluir letras y números.</p>
+        </div>
+
+        <div class="form-grupo">
+          <label for="confirm">Confirmar contraseña <span class="obligatorio">*</span></label>
+          <input type="password" id="confirm" name="confirm" autocomplete="new-password" required />
+        </div>
+
+        <button type="submit" id="btn-registrar" class="btn btn-primario btn-bloque">REGISTRAR USUARIO</button>
+
+        <p class="form-enlaces">
+          ¿Ya tienes una cuenta? <a href="login.html">Inicia sesión</a>
+        </p>
+      </form>
+    </section>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #1: Gestión de Usuarios</footer>
+
+  <script type="module">
+    import { registrarUsuario } from "../js/auth.js";
+    import { enlace } from "../js/guard.js";
+    import {
+      validarRegistro,
+      mostrarMensaje,
+      limpiarMensaje,
+      bloquearBoton,
+      traducirErrorFirebase
+    } from "../js/utils.js";
+
+    const form = document.getElementById("form-registro");
+    const mensaje = document.getElementById("mensaje");
+    const btn = document.getElementById("btn-registrar");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      limpiarMensaje(mensaje);
+
+      const datos = {
+        nombre: form.nombre.value,
+        correo: form.correo.value,
+        telefono: form.telefono.value,
+        password: form.password.value,
+        confirm: form.confirm.value
+      };
+
+      // Validaciones locales antes de llamar a Firebase.
+      const errorValidacion = validarRegistro(datos);
+      if (errorValidacion) {
+        mostrarMensaje(mensaje, "error", errorValidacion);
+        return;
+      }
+
+      const desbloquear = bloquearBoton(btn, "Registrando...");
+      const resultado = await registrarUsuario(datos);
+      desbloquear();
+
+      if (resultado.ok) {
+        mostrarMensaje(
+          mensaje,
+          "exito",
+          "✅ ¡Registro exitoso! Tu cuenta fue creada correctamente. Serás redirigido al inicio de sesión..."
+        );
+        // Redirigir al login tras confirmar el registro.
+        setTimeout(() => {
+          window.location.href = `${enlace("pages/login.html")}?registrado=1`;
+        }, 2200);
+      } else {
+        // Traduce códigos como auth/email-already-in-use, auth/weak-password, etc.
+        mostrarMensaje(mensaje, "error", traducirErrorFirebase(resultado.error));
+      }
+    });
+  </script>
+</body>
+</html>
