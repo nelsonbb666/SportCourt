@@ -2,29 +2,56 @@ rules_version = '2';
 
 /**
  * ============================================================
- * Reglas de seguridad de Cloud Firestore — Sprint #1
+ * Reglas de seguridad de Cloud Firestore — Sprint #2
  * ============================================================
- * Publica este archivo en Firebase Console → Firestore Database → Rules.
- * (O mediante Firebase CLI: `firebase deploy --only firestore:rules`)
+ * Publica este archivo en Firebase Console → Firestore Database → Rules
+ * (o mediante Firebase CLI: `firebase deploy --only firestore:rules`).
  *
  * Principios:
- *  - Cada usuario solo puede leer y escribir SU propio documento
- *    en la colección "usuarios" (documento id == uid del usuario).
- *  - Está prohibido almacenar contraseñas: el perfil solo contiene
- *    nombre, teléfono, correo y fecha de creación.
- *  - Las colecciones futuras (canchas, reservas) se añadirán en los
- *    próximos sprints con sus propias reglas.
+ *  - Cada usuario solo puede leer su propio documento en "usuarios" y
+ *    no puede cambiarse el rol a sí mismo (el rol "admin" se asigna a
+ *    mano desde la consola de Firebase).
+ *  - "canchas": cualquier usuario autenticado puede leer; solo admin
+ *    puede crear / actualizar / eliminar.
+ *  - "reservas": autenticados leen; cualquiera crea una reserva propia;
+ *    el dueño o un admin pueden modificarla/cancelarla.
+ *  - Ocultar botones en la interfaz NO es seguridad: estas reglas son
+ *    la protección real del backend.
  */
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Perfil de usuario: uno por UID.
-    match /usuarios/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    function estaAutenticado() { return request.auth != null; }
+
+    function esAdmin() {
+      return estaAutenticado() &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'admin';
     }
 
-    // Denegar todo lo demás por defecto (se ampliará en Sprint #2+).
+    // Perfil de usuario: uno por UID. El usuario no puede ascenderse a admin.
+    match /usuarios/{uid} {
+      allow read: if estaAutenticado() && request.auth.uid == uid;
+      allow create: if estaAutenticado() && request.auth.uid == uid
+                    && request.resource.data.rol == 'usuario';
+      allow update: if estaAutenticado() && request.auth.uid == uid
+                    && request.resource.data.rol == resource.data.rol;
+    }
+
+    // Canchas: lectura para usuarios con sesión; escritura solo admin.
+    match /canchas/{canchaId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if esAdmin();
+    }
+
+    // Reservas (modelo definido en Sprint #2; el Sprint #3 escribirá aquí).
+    match /reservas/{reservaId} {
+      allow read: if estaAutenticado();
+      allow create: if estaAutenticado() && request.resource.data.usuarioId == request.auth.uid;
+      allow update, delete: if esAdmin() || (estaAutenticado() && resource.data.usuarioId == request.auth.uid);
+    }
+
+    // Denegar todo lo demás por defecto.
     match /{document=**} {
       allow read, write: if false;
     }
