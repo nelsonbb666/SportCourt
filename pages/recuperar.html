@@ -41,6 +41,8 @@
   <footer>© 2026 Reserva de Canchas — Sprint #1: Gestión de Usuarios</footer>
 
   <script type="module">
+    // guard.js pinta la navbar dinámica según el estado de sesión.
+    import "../js/guard.js";
     import { recuperarPassword } from "../js/auth.js";
     import { esCorreoValido, mostrarMensaje, limpiarMensaje, bloquearBoton } from "../js/utils.js";
 
