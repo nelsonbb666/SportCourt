@@ -18,20 +18,32 @@
       <h1>👋 ¡Bienvenido!</h1>
       <p class="descripcion" id="saludo-dashboard">Cargando tu información...</p>
       <span class="badge-sesion" id="badge-correo">Sesión activa</span>
+      <div class="mensaje" id="aviso-dashboard"></div>
     </section>
 
-    <!-- Base para el Sprint #2: aquí se mostrará el catálogo y la reserva de canchas -->
+    <!-- Sprint #2: catálogo y disponibilidad de canchas -->
     <section class="panel">
-      <h2>🏟️ Próximamente: Reserva de canchas</h2>
+      <h2>🏟️ Canchas deportivas</h2>
       <p class="descripcion">
-        En el Sprint #2 podrás ver las canchas disponibles, consultar horarios y crear tus
-        reservas desde este panel. Mientras tanto, puedes mantener tus datos actualizados
-        en <a href="perfil.html" style="color: var(--verde); font-weight: 600;">Mi perfil</a>.
+        Consulta las canchas registradas y su disponibilidad por fecha, o mantén tus
+        datos actualizados en <a href="perfil.html" style="color: var(--verde); font-weight: 600;">Mi perfil</a>.
+      </p>
+      <div class="hero-acciones" style="margin-top: 1rem;">
+        <a href="canchas.html" class="btn btn-primario">CONSULTAR CANCHA</a>
+      </div>
+    </section>
+
+    <!-- Base para el Sprint #3: aquí se creará la reserva propiamente dicha -->
+    <section class="panel">
+      <h2>📅 Próximamente: Reserva de horarios</h2>
+      <p class="descripcion">
+        En el Sprint #3 podrás reservar los horarios disponibles que muestra la
+        pantalla de disponibilidad. Por ahora puedes consultar canchas y sus horarios libres.
       </p>
     </section>
   </main>
 
-  <footer>© 2026 Reserva de Canchas — Sprint #1: Gestión de Usuarios</footer>
+  <footer>© 2026 Reserva de Canchas — Sprint #2: Gestión de Canchas</footer>
 
   <script type="module">
     // guard.js ya protege esta página (data-page="privada") y pinta la navbar.
@@ -44,11 +56,21 @@
       if (!usuario) return; // guard.js se encarga de redirigir.
       const saludo = document.getElementById("saludo-dashboard");
       const badge = document.getElementById("badge-correo");
+
+      // Mensaje pendiente (ej.: redirect desde una página de admin sin permisos).
+      const msg = new URLSearchParams(window.location.search).get("msg");
+      const aviso = document.getElementById("aviso-dashboard");
+      if (msg && aviso) {
+        aviso.textContent = msg;
+        aviso.classList.add("visible", "mensaje-error");
+      }
+
       try {
         const snap = await getDoc(doc(db, "usuarios", usuario.uid));
-        const nombre = snap.exists() ? snap.data().nombre : "campeón/a";
+        const perfil = snap.exists() ? snap.data() : {};
+        const nombre = perfil.nombre || "campeón/a";
         saludo.textContent = `Hola ${nombre}, tu cuenta está lista para reservar canchas.`;
-        badge.textContent = `📧 ${usuario.email}`;
+        badge.textContent = `📧 ${usuario.email}${perfil.rol === "admin" ? " · Administrador" : ""}`;
       } catch (_) {
         saludo.textContent = "Tu cuenta está lista para reservar canchas.";
         badge.textContent = `📧 ${usuario.email}`;

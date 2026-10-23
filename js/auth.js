@@ -32,6 +32,7 @@ export async function registrarUsuario({ nombre, correo, telefono, password }) {
       nombre: nombre.trim(),
       telefono: telefono.trim(),
       correo: correo.trim().toLowerCase(),
+      rol: "usuario", // Sprint #2: "usuario" | "admin" (el admin se asigna a mano en Firebase Console)
       fechaCreacion: serverTimestamp()
       // ⚠️ Nunca guardar la contraseña aquí.
     });
