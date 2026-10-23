@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi perfil | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="privada">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <!-- ===== Datos del perfil ===== -->
+    <section class="contenedor-formulario">
+      <h1>Mi perfil</h1>
+      <p class="subtitulo">Mantén tus datos actualizados. El correo no se puede modificar.</p>
+
+      <div id="mensaje-perfil" class="mensaje" role="alert" aria-live="polite"></div>
+
+      <form id="form-perfil" novalidate>
+        <div class="form-grupo">
+          <label for="nombre">Nombre completo <span class="obligatorio">*</span></label>
+          <input type="text" id="nombre" name="nombre" autocomplete="name" required />
+        </div>
+
+        <div class="form-grupo">
+          <label for="correo">Correo electrónico</label>
+          <input type="email" id="correo" readonly tabindex="-1" />
+          <p class="ayuda">El correo es tu identificador de cuenta y no puede editarse.</p>
+        </div>
+
+        <div class="form-grupo">
+          <label for="telefono">Teléfono <span class="obligatorio">*</span></label>
+          <input type="tel" id="telefono" name="telefono" autocomplete="tel" required />
+        </div>
+
+        <button type="submit" id="btn-guardar" class="btn btn-primario btn-bloque">GUARDAR CAMBIOS</button>
+      </form>
+
+      <hr class="separador" />
+
+      <!-- ===== Cambio de contraseña ===== -->
+      <h2 style="color: var(--verde-oscuro); font-size: 1.15rem; margin-bottom: .75rem;">🔒 Cambiar contraseña</h2>
+      <div id="mensaje-password" class="mensaje" role="alert" aria-live="polite"></div>
+
+      <form id="form-password" novalidate>
+        <div class="form-grupo">
+          <label for="password-actual">Contraseña actual <span class="obligatorio">*</span></label>
+          <input type="password" id="password-actual" autocomplete="current-password" required />
+        </div>
+
+        <div class="form-grupo">
+          <label for="password-nueva">Nueva contraseña <span class="obligatorio">*</span></label>
+          <input type="password" id="password-nueva" autocomplete="new-password" required />
+          <p class="ayuda">Mínimo 8 caracteres, con letras y números.</p>
+        </div>
+
+        <div class="form-grupo">
+          <label for="password-confirm">Confirmar nueva contraseña <span class="obligatorio">*</span></label>
+          <input type="password" id="password-confirm" autocomplete="new-password" required />
+        </div>
+
+        <button type="submit" id="btn-password" class="btn btn-contorno btn-bloque">ACTUALIZAR CONTRASEÑA</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #1: Gestión de Usuarios</footer>
+
+  <script type="module">
+    // guard.js protege la página (data-page="privada") y pinta la navbar.
+    import "../js/guard.js";
+    import { auth } from "../js/firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { obtenerPerfil, actualizarPerfil, cambiarPassword } from "../js/perfil.js";
+    import {
+      esNombreValido,
+      esTelefonoValido,
+      esPasswordValida,
+      mostrarMensaje,
+      limpiarMensaje,
+      bloquearBoton,
+      traducirErrorFirebase
+    } from "../js/utils.js";
+
+    const formPerfil = document.getElementById("form-perfil");
+    const msgPerfil = document.getElementById("mensaje-perfil");
+    const btnGuardar = document.getElementById("btn-guardar");
+
+    const formPass = document.getElementById("form-password");
+    const msgPass = document.getElementById("mensaje-password");
+    const btnPass = document.getElementById("btn-password");
+
+    /* Cargar datos actuales desde Firestore al tener sesión confirmada. */
+    onAuthStateChanged(auth, async (usuario) => {
+      if (!usuario) return; // guard.js redirige al login.
+      try {
+        const perfil = await obtenerPerfil(usuario.uid);
+        document.getElementById("nombre").value = perfil?.nombre || "";
+        document.getElementById("telefono").value = perfil?.telefono || "";
+        document.getElementById("correo").value = usuario.email || "";
+      } catch (error) {
+        mostrarMensaje(msgPerfil, "error", traducirErrorFirebase(error, "No se pudieron cargar tus datos."));
+      }
+    });
+
+    /* Guardar nombre y teléfono. */
+    formPerfil.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      limpiarMensaje(msgPerfil);
+
+      const nombre = document.getElementById("nombre").value;
+      const telefono = document.getElementById("telefono").value;
+
+      if (!esNombreValido(nombre)) {
+        mostrarMensaje(msgPerfil, "error", "El nombre completo es obligatorio (mínimo 3 caracteres).");
+        return;
+      }
+      if (!esTelefonoValido(telefono)) {
+        mostrarMensaje(msgPerfil, "error", "El teléfono no es válido (usa entre 7 y 15 dígitos, puedes iniciar con +).");
+        return;
+      }
+
+      const desbloquear = bloquearBoton(btnGuardar, "Guardando...");
+      try {
+        await actualizarPerfil(auth.currentUser.uid, { nombre, telefono });
+        mostrarMensaje(msgPerfil, "exito", "✅ Perfil actualizado correctamente.");
+      } catch (error) {
+        mostrarMensaje(msgPerfil, "error", traducirErrorFirebase(error, "No se pudo guardar el perfil."));
+      } finally {
+        desbloquear();
+      }
+    });
+
+    /* Cambiar contraseña (con reautenticación). */
+    formPass.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      limpiarMensaje(msgPass);
+
+      const actual = document.getElementById("password-actual").value;
+      const nueva = document.getElementById("password-nueva").value;
+      const confirm = document.getElementById("password-confirm").value;
+
+      if (!actual) {
+        mostrarMensaje(msgPass, "error", "Ingresa tu contraseña actual.");
+        return;
+      }
+      if (!esPasswordValida(nueva)) {
+        mostrarMensaje(msgPass, "error", "La nueva contraseña debe tener mínimo 8 caracteres, con letras y números.");
+        return;
+      }
+      if (nueva !== confirm) {
+        mostrarMensaje(msgPass, "error", "La confirmación no coincide con la nueva contraseña.");
+        return;
+      }
+
+      const desbloquear = bloquearBoton(btnPass, "Actualizando...");
+      try {
+        await cambiarPassword({ passwordActual: actual, passwordNueva: nueva });
+        mostrarMensaje(msgPass, "exito", "✅ Tu contraseña fue actualizada correctamente.");
+        formPass.reset();
+      } catch (error) {
+        mostrarMensaje(msgPass, "error", traducirErrorFirebase(error, "No se pudo cambiar la contraseña."));
+      } finally {
+        desbloquear();
+      }
+    });
+  </script>
+</body>
+</html>
