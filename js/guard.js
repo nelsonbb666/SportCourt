@@ -11,6 +11,10 @@
  *      en caso contrario redirige a login.html (con ?next= para volver).
  *   3. Si una página pública de auth (login/registro) se abre con sesión
  *      activa, redirige directo al dashboard.
+ *   4. (Sprint #2) Si la página tiene <body data-page="admin">, exige además
+ *      que el documento del usuario tenga rol == "admin"; si no, redirige al
+ *      dashboard con un mensaje. La protección REAL son las reglas de
+ *      Firestore; esto es solo experiencia de usuario.
  *
  * Rutas relativas: pensadas para funcionar tanto en localhost como en
  * GitHub Pages servido desde subcarpeta (/reserva-canchas/...).
@@ -33,12 +37,44 @@ function calcularBase() {
 }
 
 const esPaginaPrivada = document.body.dataset.page === "privada";
+const esPaginaAdmin = document.body.dataset.page === "admin";
+const requiereSesion = esPaginaPrivada || esPaginaAdmin;
 const esPaginaAuthPublica = document.body.dataset.page === "auth-publica";
 
 /** Enlace absoluto desde la raíz del sitio (para <a> generados por JS). */
 function enlace(destino) {
   // destino ej.: "index.html", "pages/login.html"
   return `${BASE}${destino}`;
+}
+
+/* ---------- Rol de usuario (Sprint #2) ---------- */
+
+let perfilCache = null; // documento de Firestore del usuario en sesión
+
+/** Lee el documento de perfil del usuario (con caché por sesión). */
+async function obtenerPerfil(usuario) {
+  if (!usuario) return null;
+  if (perfilCache && perfilCache.uid === usuario.uid) return perfilCache.perfil;
+  try {
+    const snap = await getDoc(doc(db, "usuarios", usuario.uid));
+    const perfil = snap.exists() ? snap.data() : null;
+    perfilCache = { uid: usuario.uid, perfil };
+    return perfil;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * ¿El usuario en sesión es administrador? (según su documento en Firestore)
+ * Se exporta para que otras páginas (canchas.js) muestren/oculten acciones.
+ * ⚠️ La protección real son las reglas de firestore.rules; esto es UX.
+ */
+export async function esAdmin() {
+  const usuario = auth.currentUser;
+  if (!usuario) return false;
+  const perfil = await obtenerPerfil(usuario);
+  return !!perfil && perfil.rol === "admin";
 }
 
 /* ---------- Navbar ---------- */
@@ -55,21 +91,19 @@ async function pintarNavbar(usuario) {
     return;
   }
 
-  // Obtener el nombre para el saludo (si existe el documento de perfil).
-  let nombre = "";
-  try {
-    const snap = await getDoc(doc(db, "usuarios", usuario.uid));
-    nombre = snap.exists() ? (snap.data().nombre || "").split(" ")[0] : "";
-  } catch (_) {
-    /* Silencioso: el saludo sin nombre no es crítico. */
-  }
+  // Obtener el nombre y rol para el saludo y las opciones de administración.
+  const perfil = await obtenerPerfil(usuario);
+  const nombre = perfil && perfil.nombre ? perfil.nombre.split(" ")[0] : "";
+  const admin = !!perfil && perfil.rol === "admin";
 
   contenedor.innerHTML = `
-    ${esPaginaPrivada && !window.location.pathname.includes("dashboard.html")
+    ${requiereSesion && !window.location.pathname.includes("dashboard.html")
       ? `<a href="${enlace("pages/dashboard.html")}">Dashboard</a>`
       : ""}
+    <a href="${enlace("pages/canchas.html")}">Consultar cancha</a>
+    ${admin ? `<a href="${enlace("pages/admin-cancha-form.html")}">Registrar cancha</a>` : ""}
     <a href="${enlace("pages/perfil.html")}">Mi perfil</a>
-    <span id="nav-saludo">${nombre ? `Hola, ${nombre} 👋` : "Sesión activa"}</span>
+    <span id="nav-saludo">${nombre ? `Hola, ${nombre} 👋` : "Sesión activa"}${admin ? " · Admin" : ""}</span>
     <a href="#" id="btn-logout" class="btn-nav">Cerrar sesión</a>
   `;
 
@@ -90,12 +124,13 @@ function redirigirALogin() {
   window.location.replace(`${enlace("pages/login.html")}?next=${siguiente}`);
 }
 
-function irAlDashboard() {
-  window.location.replace(enlace("pages/dashboard.html"));
+function irAlDashboard(mensaje) {
+  const q = mensaje ? `?msg=${encodeURIComponent(mensaje)}` : "";
+  window.location.replace(`${enlace("pages/dashboard.html")}${q}`);
 }
 
-onAuthStateChanged(auth, (usuario) => {
-  if (esPaginaPrivada && !usuario) {
+onAuthStateChanged(auth, async (usuario) => {
+  if (requiereSesion && !usuario) {
     redirigirALogin();
     return;
   }
@@ -104,7 +139,14 @@ onAuthStateChanged(auth, (usuario) => {
     irAlDashboard();
     return;
   }
+  if (esPaginaAdmin && usuario) {
+    const perfil = await obtenerPerfil(usuario);
+    if (!perfil || perfil.rol !== "admin") {
+      irAlDashboard("No tienes permisos de administrador para acceder a esa página.");
+      return;
+    }
+  }
   pintarNavbar(usuario);
 });
 
-export { enlace };
+export { enlace, BASE };
