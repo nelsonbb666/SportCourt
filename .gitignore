@@ -20,3 +20,6 @@ __pycache__/
 
 # Paquetes/bundles de Git (artefactos de transferencia, no versionar)
 *.bundle
+
+# Archivos de transferencia base64 (artefactos de sincronización)
+*.bundle.b64
