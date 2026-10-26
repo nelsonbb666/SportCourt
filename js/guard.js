@@ -101,6 +101,7 @@ async function pintarNavbar(usuario) {
       ? `<a href="${enlace("pages/dashboard.html")}">Dashboard</a>`
       : ""}
     <a href="${enlace("pages/canchas.html")}">Consultar cancha</a>
+    <a href="${enlace("pages/mis-reservas.html")}">Mis reservas</a>
     ${admin ? `<a href="${enlace("pages/admin-cancha-form.html")}">Registrar cancha</a>` : ""}
     <a href="${enlace("pages/perfil.html")}">Mi perfil</a>
     <span id="nav-saludo">${nombre ? `Hola, ${nombre} 👋` : "Sesión activa"}${admin ? " · Admin" : ""}</span>
