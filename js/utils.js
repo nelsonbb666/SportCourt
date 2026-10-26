@@ -208,6 +208,36 @@ export function formatearFechaLarga(fecha) {
   return d.toLocaleDateString("es", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 }
 
+/* ============================================================
+   Configuración y helpers del Sprint #3 (reservas)
+   ============================================================ */
+
+/**
+ * Configuración general del sistema.
+ * minHorasAnticipacionCancelacion: horas mínimas de anticipación para
+ * poder cancelar una reserva. Por defecto 0 = regla desactivada.
+ * Cámbiala aquí o en la consola con:
+ *   CONSTANTE.config.minHorasAnticipacionCancelacion = 24;
+ */
+export const CONSTANTE = {
+  config: {
+    minHorasAnticipacionCancelacion: 0
+  }
+};
+
+/** ¿Ya pasó el instante fecha("YYYY-MM-DD") + hora("HH:mm") en hora local? */
+export function fechaHoraEsPasada(fecha, hora) {
+  if (!esFechaValida(fecha) || !esHoraValida(hora)) return true; // dato inválido → se considera no reservable
+  const inicio = new Date(`${fecha}T${hora}:00`);
+  return inicio.getTime() <= Date.now();
+}
+
+/** Minutos transcurridos entre ahora y el inicio de fecha+hora (negativo si ya pasó). */
+export function minutosHasta(fecha, hora) {
+  const inicio = new Date(`${fecha}T${hora}:00`).getTime();
+  return Math.floor((inicio - Date.now()) / 60000);
+}
+
 /* ---------- Modal de confirmación propio (sin window.confirm) ---------- */
 
 let resolveModal = null;
@@ -219,7 +249,7 @@ function crearEstructuraModal() {
     <div class="modal-fondo" id="modal-fondo" hidden>
       <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
         <h3 id="modal-titulo"></h3>
-        <p id="modal-mensaje"></p>
+        <div id="modal-mensaje"></div>
         <div class="modal-acciones">
           <button type="button" class="btn btn-contorno" id="modal-cancelar">Cancelar</button>
           <button type="button" class="btn btn-peligro" id="modal-aceptar">Confirmar</button>
@@ -250,16 +280,53 @@ function cerrarModal(valor) {
 }
 
 /**
+ * Rellena el cuerpo del modal de forma SEGURA (sin innerHTML con datos):
+ * - `mensaje` siempre va como texto plano (textContent).
+ * - `contenido` (opcional): array de pares { etiqueta, valor } que se pintan
+ *   como lista de resumen (usado al confirmar una reserva).
+ */
+function pintarContenidoModal(mensaje, contenido) {
+  const cuerpo = document.getElementById("modal-mensaje");
+  cuerpo.innerHTML = "";
+
+  if (mensaje) {
+    const p = document.createElement("p");
+    p.className = "modal-texto";
+    p.textContent = mensaje;
+    cuerpo.appendChild(p);
+  }
+
+  if (Array.isArray(contenido) && contenido.length) {
+    const dl = document.createElement("dl");
+    dl.className = "modal-resumen";
+    for (const { etiqueta, valor } of contenido) {
+      const dt = document.createElement("dt");
+      dt.textContent = etiqueta;
+      const dd = document.createElement("dd");
+      dd.textContent = valor; // textContent → escapa cualquier dato dinámico (anti-XSS)
+      dl.append(dt, dd);
+    }
+    cuerpo.appendChild(dl);
+  }
+}
+
+/**
  * Abre un modal de confirmación reutilizable (sin usar confirm() del navegador).
- * @param {{titulo?: string, mensaje?: string, textoAceptar?: string}} opciones
+ * @param {{titulo?: string, mensaje?: string, contenido?: Array<{etiqueta:string, valor:string}>,
+ *          textoAceptar?: string, claseAceptar?: "btn-peligro"|"btn-primario"}} opciones
  * @returns {Promise<boolean>} true si el usuario confirma.
  */
-export function confirmarModal({ titulo = "¿Estás seguro?", mensaje = "", textoAceptar = "Confirmar" } = {}) {
+export function confirmarModal({
+  titulo = "¿Estás seguro?", mensaje = "", contenido = null,
+  textoAceptar = "Confirmar", claseAceptar = "btn-peligro"
+} = {}) {
   crearEstructuraModal();
   document.getElementById("modal-titulo").textContent = titulo;
-  document.getElementById("modal-mensaje").textContent = mensaje;
+  pintarContenidoModal(mensaje, contenido);
   const btnAceptar = document.getElementById("modal-aceptar");
   btnAceptar.textContent = textoAceptar;
+  btnAceptar.classList.remove("btn-peligro", "btn-primario");
+  btnAceptar.classList.add(claseAceptar === "btn-primario" ? "btn-primario" : "btn-peligro");
   document.getElementById("modal-fondo").hidden = false;
   btnAceptar.focus();
   return new Promise((resolver) => { resolveModal = resolver; });
