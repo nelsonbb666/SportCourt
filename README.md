@@ -241,11 +241,140 @@ el botón **REGISTRAR CANCHA**.)
    Escape); confirma → desaparece sin recargar y ves el mensaje de éxito. Si la cancha tiene
    reservas futuras confirmadas, el modal muestra una advertencia previa.
 
+## 📅 Sprint #3: Gestión de Reservas
+
+Completa el flujo principal del sistema: **reservar → consultar → cancelar**.
+
+### Nuevas páginas y archivos
+
+| Archivo | Descripción |
+|---|---|
+| `pages/mis-reservas.html` | Listado de reservas del usuario con pestañas **Próximas / Pasadas / Canceladas** |
+| `js/reservas.js` | `crearReserva()` (transacción anti doble-reserva), `cancelarReserva()`, listado y UI de "Mis reservas" |
+| `js/disponibilidad.js` | Botón **Reservar** activo en cada bloque disponible + modal de resumen + refresco sin recargar |
+| `js/utils.js` | Helpers nuevos: `fechaHoraEsPasada()`, `minutosHasta()`, `CONSTANTE.config` y modal con resumen |
+| `firestore.rules` | Reglas endurecidas para la colección `reservas` (ver más abajo) |
+
+### Modelo de datos ampliado (`reservas`)
+
+Además de los campos del Sprint #2, cada documento incluye ahora:
+
+```json
+{
+  "canchaId": "abc123",
+  "canchaNombre": "Cancha Central",
+  "canchaTipo": "Fútbol 5",
+  "canchaUbicacion": "Av. Principal 100",
+  "usuarioId": "<uid>",
+  "fecha": "2026-06-20",
+  "horaInicio": "18:00",
+  "horaFin": "19:00",
+  "precio": 15000,
+  "estado": "confirmada",
+  "creadaEn": "<timestamp>",
+  "canceladaEn": null
+}
+```
+
+`canchaNombre`, `canchaTipo`, `canchaUbicacion` y `precio` son **copias al momento de
+reservar** (así "Mis reservas" no necesita consultas extra); `canceladaEn` es timestamp
+solo al cancelar.
+
+El **ID del documento es determinista**: `canchaId_fecha_horaInicio`
+(ej. `abc123_2026-06-20_18:00`). La escritura se hace con `runTransaction()`:
+
+1. Lee ese ID; si existe con `estado == "confirmada"` → aborta con **"Este horario ya fue reservado"**.
+2. Si no existe o está `cancelada` → lo escribe como `confirmada` (reutiliza el documento, sin duplicados).
+
+Así dos usuarios **no pueden reservar el mismo horario**, aunque hagan clic a la vez.
+
+### Validaciones antes de reservar
+
+- La cancha debe existir y estar `activa`.
+- La fecha/hora no puede ser pasada.
+- El horario debe estar dentro de `horaApertura`–`horaCierre` de la cancha.
+- El usuario no puede tener otra reserva confirmada **a la misma fecha y hora** (en cualquier cancha).
+- El botón queda deshabilitado mientras se procesa (anti doble clic).
+
+### Cancelación
+
+- Botón **CANCELAR** solo en reservas próximas/confirmadas, con modal de confirmación propio.
+- Se actualiza `estado` a `"cancelada"` y se registra `canceladaEn` (el documento NO se borra, conserva historial).
+- Al volver a consultar disponibilidad, el horario aparece **disponible** (porque `generarBloques()` solo cuenta las reservas `confirmada`).
+- **Regla opcional de anticipación**: en `js/utils.js`,
+  `CONSTANTE.config.minHorasAnticipacionCancelacion` — por defecto `0` (desactivada).
+  Ponla p. ej. en `24` para exigir un día de anticipación al cancelar.
+
+### 🔐 Reglas de Firestore para `reservas` (Sprint #3)
+
+⚠️ **Debes volver a publicar las reglas** en Firebase Console → Firestore Database →
+Rules → *Publish* (o `firebase deploy --only firestore:rules`); el archivo
+`firestore.rules` de este repositorio queda así:
+
+- **read**: cualquier usuario autenticado (necesario para marcar horarios ocupados).
+- **create**: solo con `usuarioId == uid propio` y `estado == "confirmada"`, con campos obligatorios validados.
+- **update**: admin siempre; o el dueño para **cancelar la propia**, o para **reutilizar un horario ya cancelado** escribiéndose como nueva reserva confirmada.
+- **delete**: solo admin.
+
+Un atacante que manipule el cliente no podrá crear reservas suplantando otro `usuarioId`,
+escribir estados inválidos, modificar/cancelar reservas ajenas ni borrar documentos.
+Recordar: ocultar botones en la UI **no** es seguridad; la protección real son estas reglas.
+
+### 🗂️ Índices de Firestore
+
+**No se requieren índices compuestos nuevos en este sprint**: todas las consultas usan
+solo filtros `where` de igualdad (`usuarioId`, `fecha`, `estado`) y el ordenamiento de las
+próximas (de la más cercana a la más lejana) se hace **en el cliente**, precisamente para
+evitar índices.
+
+Si más adelante combinas `where` + `orderBy` sobre campos distintos (p. ej.
+`where("usuarioId","==",uid)` + `orderBy("fecha")`), al primer error Firestore imprimirá
+en la consola del navegador un enlace directo tipo
+`https://console.firebase.google.com/...?creationUri=...`; ábrelo y acepta para crear el
+índice compuesto sugerido (`usuarioId` ascending + `fecha` ascending). También puedes
+crearlo a mano en Firebase Console → Firestore Database → **Índices** → *Crear índice*.
+
+### 🔒 Nota de privacidad
+
+Para pintar los bloques ocupados, `disponibilidad.html` lee las reservas de todos los
+usuarios autenticados (cualquiera con sesión podría ver qué UID reservó cada horario).
+Si más adelante quieres ocultar **quién** reservó, mueve la marca de ocupación a una
+colección separada `ocupaciones` con solo `{canchaId, fecha, horaInicio}` (lectura libre
+para autenticados) y restringe la lectura de `reservas` al dueño y al admin.
+
+### ✅ Cómo probar el Sprint #3 (pruebas manuales)
+
+Necesitas **dos cuentas de usuario normal** (A y B) y una cancha activa creada por el admin.
+
+1. **Usuario A** entra a *Consultar cancha → Ver disponibilidad*, elige una fecha futura,
+   pulsa **Reservar** en un bloque verde → modal de resumen (cancha, tipo, ubicación,
+   fecha, horario, precio) → **CONFIRMAR RESERVA** → mensaje *"✅ Reserva confirmada"*, el
+   bloque pasa a **Ocupado** sin recargar y aparece el enlace *Ver mis reservas →*.
+2. **Usuario B** (ventana incógnito u otro navegador) consulta la misma cancha/fecha → el
+   bloque aparece **Ocupado**; si fuerza la reserva desde la consola, la transacción
+   responde *"Este horario ya fue reservado"*. ✔️ Dos usuarios no reservan el mismo horario.
+3. **Usuario A** va a *Mis reservas* → ve su reserva en **Próximas** (verde *Confirmada*)
+   con cancha, tipo, ubicación, fecha legible en español, horario y precio → pulsa
+   **CANCELAR** → modal *"¿Seguro que deseas cancelar tu reserva de ...?"* → confirma →
+   la tarjeta se mueve a **Canceladas** sin recargar, con mensaje de éxito.
+4. En *Disponibilidad*, vuelve a consultar esa fecha → el horario aparece **Disponible**. ✔️
+5. **Usuario B** reserva ese mismo horario → funciona y reutiliza el documento (en Firebase
+   Console sigue habiendo **un solo doc** con ese ID, ahora con el uid de B). ✔️
+6. **Usuario A** intenta reservar dos canchas distintas a la misma hora del mismo día →
+   recibe *"Ya tienes una reserva confirmada el ... No puedes reservar dos canchas a la
+   misma hora."* ✔️
+7. En *Mis reservas* de B no aparece ninguna reserva de A (consulta filtrada por
+   `usuarioId`; las reglas además impiden escribir como otro usuario). ✔️
+8. Bloques de hoy cuya hora ya pasó aparecen *No disponible*; intentar reservar una fecha
+   pasada se rechaza. ✔️
+9. Sin publicar las reglas nuevas, reservar falla con *"No tienes permisos..."* →
+   publícalas. Un usuario normal no puede borrar reservas (`delete` solo admin). ✔️
+
 ## 🗺️ Roadmap
 
 - ✅ Sprint #1: Gestión de usuarios (este entregable)
 - ✅ Sprint #2: Gestión de canchas, roles y disponibilidad (este entregable)
-- ⏭️ Sprint #3: Reservas, calendario y confirmaciones (escribe en la colección `reservas` ya definida)
+- ✅ Sprint #3: Gestión de reservas: reservar, consultar y cancelar (este entregable)
 
 ## 📄 Licencia
 
