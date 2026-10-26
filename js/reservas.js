@@ -32,14 +32,11 @@ import {
 
 /* ---------- Utilidades de datos ---------- */
 
-/** Normaliza un fragmento para que sea un ID de Firestore válido. */
-function parteIdSegura(texto) {
-  return String(texto).replace(/[^A-Za-z0-9._-]/g, "_");
-}
-
 /** ID determinista de la reserva de un horario concreto. */
 export function idReserva(canchaId, fecha, horaInicio) {
-  return [parteIdSegura(canchaId), parteIdSegura(fecha), parteIdSegura(horaInicio)].join("_");
+  // Se conservan los dos puntos de la hora (carácter válido en IDs de Firestore),
+  // como en el ejemplo del sprint: abc123_2025-06-20_18:00
+  return `${canchaId}_${fecha}_${horaInicio}`;
 }
 
 /** ¿El horario pedido cae dentro del horario de atención de la cancha? */
