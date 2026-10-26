@@ -2,7 +2,7 @@ rules_version = '2';
 
 /**
  * ============================================================
- * Reglas de seguridad de Cloud Firestore — Sprint #2
+ * Reglas de seguridad de Cloud Firestore — Sprint #3
  * ============================================================
  * Publica este archivo en Firebase Console → Firestore Database → Rules
  * (o mediante Firebase CLI: `firebase deploy --only firestore:rules`).
@@ -13,8 +13,10 @@ rules_version = '2';
  *    mano desde la consola de Firebase).
  *  - "canchas": cualquier usuario autenticado puede leer; solo admin
  *    puede crear / actualizar / eliminar.
- *  - "reservas": autenticados leen; cualquiera crea una reserva propia;
- *    el dueño o un admin pueden modificarla/cancelarla.
+ *  - "reservas": autenticados leen (necesario para marcar horarios
+ *    ocupados); solo se puede CREAR una reserva propia confirmada;
+ *    se puede ACTUALIZAR para cancelar la propia o reutilizar un
+ *    horario ya cancelado; solo admin elimina.
  *  - Ocultar botones en la interfaz NO es seguridad: estas reglas son
  *    la protección real del backend.
  */
@@ -44,11 +46,34 @@ service cloud.firestore {
       allow create, update, delete: if esAdmin();
     }
 
-    // Reservas (modelo definido en Sprint #2; el Sprint #3 escribirá aquí).
+    // Reservas (Sprint #3): ID determinista canchaId_fecha_horaInicio.
     match /reservas/{reservaId} {
       allow read: if estaAutenticado();
-      allow create: if estaAutenticado() && request.resource.data.usuarioId == request.auth.uid;
-      allow update, delete: if esAdmin() || (estaAutenticado() && resource.data.usuarioId == request.auth.uid);
+
+      // Crear: solo para sí mismo, confirmada y con campos obligatorios válidos
+      allow create: if estaAutenticado()
+                    && request.resource.data.usuarioId == request.auth.uid
+                    && request.resource.data.estado == 'confirmada'
+                    && request.resource.data.canchaId is string
+                    && request.resource.data.fecha is string
+                    && request.resource.data.horaInicio is string
+                    && request.resource.data.horaFin is string;
+
+      // Reescribir una reserva cancelada propia (volver a reservar el mismo
+      // horario) o cancelar la propia; el admin puede modificar cualquiera.
+      allow update: if esAdmin()
+                    || (estaAutenticado()
+                        && request.resource.data.usuarioId == request.auth.uid
+                        && (
+                          // cancelar la propia
+                          (resource.data.usuarioId == request.auth.uid
+                            && request.resource.data.estado == 'cancelada')
+                          // o reutilizar un horario ya cancelado
+                          || (resource.data.estado == 'cancelada'
+                            && request.resource.data.estado == 'confirmada')
+                        ));
+
+      allow delete: if esAdmin();
     }
 
     // Denegar todo lo demás por defecto.
