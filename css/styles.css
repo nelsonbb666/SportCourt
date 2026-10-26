@@ -759,3 +759,192 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   Sprint #3 — Reservas: tarjetas, pestañas y estados
+   ============================================================ */
+
+/* Botón "Reservar" activo dentro de los bloques de horario */
+.btn-reservar-bloque {
+  margin-top: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--blanco);
+  background: var(--verde);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-reservar-bloque:hover {
+  background: var(--verde-oscuro, #1b6e36);
+}
+
+.btn-reservar-bloque:disabled {
+  background: var(--gris, #9aa5a0);
+  cursor: not-allowed;
+}
+
+/* Enlace "Ver mis reservas" tras confirmar */
+.enlace-mis-reservas {
+  display: inline-block;
+  margin-top: 0.4rem;
+  color: var(--blanco);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* Resumen del modal (etiqueta: valor) */
+.modal-resumen {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 0.9rem;
+  margin: 0.9rem 0 0.25rem;
+  text-align: left;
+}
+
+.modal-resumen dt {
+  font-weight: 700;
+  color: var(--gris-texto);
+}
+
+.modal-resumen dd {
+  margin: 0;
+  color: var(--verde-oscuro, #1b6e36);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.modal-texto {
+  margin: 0.25rem 0 0;
+}
+
+/* Pestañas de Mis reservas */
+.tabs-reservas {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.tab-boton {
+  padding: 0.55rem 1.1rem;
+  border: 2px solid var(--verde);
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--verde);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-boton:hover {
+  background: rgba(27, 110, 54, 0.08);
+}
+
+.tab-boton.activo {
+  background: var(--verde);
+  color: var(--blanco);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.visible {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .tab-panel.visible {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tarjeta de reserva */
+.tarjeta-reserva {
+  background: var(--blanco);
+  border-radius: 12px;
+  border-left: 6px solid var(--gris, #9aa5a0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tarjeta-reserva.estado-proximas { border-left-color: var(--verde); }
+.tarjeta-reserva.estado-pasadas { border-left-color: var(--gris, #9aa5a0); }
+.tarjeta-reserva.estado-canceladas { border-left-color: #c0392b; opacity: 0.85; }
+
+.tarjeta-reserva-cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tarjeta-reserva-cab h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--verde-oscuro, #1b6e36);
+}
+
+/* Estados con color Y texto (accesibilidad) */
+.badge-estado {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.badge-proximas { background: rgba(27, 110, 54, 0.14); color: var(--verde-oscuro, #1b6e36); }
+.badge-pasadas { background: rgba(120, 130, 126, 0.18); color: #4d5754; }
+.badge-canceladas { background: rgba(192, 57, 43, 0.12); color: #c0392b; }
+
+.datos-reserva {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 0.9rem;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.datos-reserva dt {
+  font-weight: 700;
+  color: var(--gris-texto);
+}
+
+.datos-reserva dd {
+  margin: 0;
+  color: #2f3a36;
+  word-break: break-word;
+}
+
+.tarjeta-reserva-pie {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-sm {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+}
+
+.estado-vacioCompacto {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--gris-texto);
+  padding: 2rem 1rem;
+  background: var(--blanco);
+  border-radius: 12px;
+}
