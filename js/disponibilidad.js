@@ -22,7 +22,6 @@ import {
   horaAMinutos, minutosAHora, formatearFechaLarga, confirmarModal, bloquearBoton
 } from "./utils.js";
 import { validarAntesDeReservar, crearReserva } from "./reservas.js";
-import { enlace } from "./guard.js";
 
 /* ============================================================
    Lógica pura y reutilizable (la usará el Sprint #3)
@@ -152,7 +151,7 @@ function anadirEnlaceMisReservas(aviso) {
   const link = document.createElement("a");
   link.id = "enlace-mis-reservas-exito";
   link.className = "enlace-mis-reservas";
-  link.href = "../pages/mis-reservas.html";
+  link.href = "mis-reservas.html";
   link.textContent = "Ver mis reservas →";
   aviso.appendChild(link);
 }

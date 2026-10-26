@@ -29,7 +29,6 @@ import {
   bloquearBoton, esFechaValida, esFechaPasada, esHoraValida, horaAMinutos,
   formatearFechaLarga, fechaHoraEsPasada, minutosHasta, CONSTANTE
 } from "./utils.js";
-import { enlace } from "./guard.js";
 
 /* ---------- Utilidades de datos ---------- */
 
@@ -233,7 +232,7 @@ function pintarPestanas(grupos, contenedor, aviso) {
     parrafo.textContent = "Consulta la disponibilidad de una cancha y reserva tu primer horario.";
     const btn = document.createElement("a");
     btn.className = "btn btn-primario";
-    btn.href = "../pages/canchas.html";
+    btn.href = "canchas.html";
     btn.textContent = "CONSULTAR CANCHA";
     vacio.append(titulo, parrafo, btn);
     contenedor.appendChild(vacio);
