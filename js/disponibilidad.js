@@ -12,15 +12,17 @@
  *     estado: "confirmada" | "cancelada", creadaEn }
  */
 
-import { db } from "./firebase-config.js";
+import { db, auth } from "./firebase-config.js";
 import {
   collection, doc, getDoc, getDocs, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 // (no se necesita enlace aquí; guard.js carga igual para la navbar y protección)
 import {
-  mostrarMensaje, esFechaValida, esFechaPasada, hoyISO,
-  horaAMinutos, minutosAHora, formatearFechaLarga
+  mostrarMensaje, limpiarMensaje, esFechaValida, esFechaPasada, hoyISO,
+  horaAMinutos, minutosAHora, formatearFechaLarga, confirmarModal, bloquearBoton
 } from "./utils.js";
+import { validarAntesDeReservar, crearReserva } from "./reservas.js";
+import { enlace } from "./guard.js";
 
 /* ============================================================
    Lógica pura y reutilizable (la usará el Sprint #3)
@@ -87,10 +89,12 @@ export async function obtenerReservasDelDia(canchaId, fecha) {
 }
 
 /* ============================================================
-   Página pages/disponibilidad.html
+   Página pages/disponibilidad.html (Sprint #3: reserva activa)
    ============================================================ */
 
 let canchaActual = null;
+let ultimaFechaConsultada = null;
+let reservandoEnCurso = false; // evita doble clic / doble reserva simultánea
 
 async function cargarDisponibilidad() {
   const contenedor = document.getElementById("resultado-disponibilidad");
@@ -109,6 +113,8 @@ async function cargarDisponibilidad() {
     return;
   }
 
+  ultimaFechaConsultada = fechaInput;
+
   contenedor.innerHTML = `
     <div class="indicador-carga"><span class="spinner"></span> Consultando horarios...</div>`;
 
@@ -122,6 +128,109 @@ async function cargarDisponibilidad() {
       error && error.code === "permission-denied"
         ? "No tienes permisos para consultar las reservas. Publica las reglas de firestore.rules en Firebase."
         : "No se pudo consultar la disponibilidad. Revisa que la colección \"reservas\" exista o contacta al administrador.");
+  }
+}
+
+/** Vuelve a consultar los bloques del día (tras reservar). Sin recargar la página. */
+async function refrescarBloques() {
+  const aviso = document.getElementById("mensaje-disponibilidad");
+  if (!canchaActual || !ultimaFechaConsultada) return;
+  try {
+    const reservas = await obtenerReservasDelDia(canchaActual.id, ultimaFechaConsultada);
+    const bloques = generarBloques(canchaActual, ultimaFechaConsultada, reservas);
+    pintarBloques(bloques, ultimaFechaConsultada);
+  } catch (_) {
+    mostrarMensaje(aviso, "error", "No se pudo actualizar la disponibilidad. Pulsa CONSULTAR HORARIOS de nuevo.");
+  }
+}
+
+/** Añade un enlace "Ver mis reservas" dentro del mensaje de éxito. */
+function anadirEnlaceMisReservas(aviso) {
+  const previo = document.getElementById("enlace-mis-reservas-exito");
+  if (previo) previo.remove();
+  aviso.appendChild(document.createElement("br"));
+  const link = document.createElement("a");
+  link.id = "enlace-mis-reservas-exito";
+  link.className = "enlace-mis-reservas";
+  link.href = "../pages/mis-reservas.html";
+  link.textContent = "Ver mis reservas →";
+  aviso.appendChild(link);
+}
+
+/**
+ * Flujo completo al pulsar "Reservar" en un bloque disponible:
+ * validaciones → modal de resumen → transacción → refresco de bloques.
+ */
+async function iniciarReserva(bloque, boton) {
+  const aviso = document.getElementById("mensaje-disponibilidad");
+  if (reservandoEnCurso) return; // protección extra contra doble clic
+  reservandoEnCurso = true;
+  const restaurar = bloquearBoton(boton, "Reservando...");
+
+  try {
+    limpiarMensaje(aviso);
+
+    // Datos completos y ACTUALES de la cancha (activa, horarios, precio)
+    await recargarDatosCancha(canchaActual.id);
+
+    const usuario = auth.currentUser;
+    if (!usuario) {
+      mostrarMensaje(aviso, "error", "Tu sesión expiró. Vuelve a iniciar sesión.");
+      return;
+    }
+
+    const errorVal = await validarAntesDeReservar(
+      canchaActual, ultimaFechaConsultada, bloque.inicio, bloque.fin, usuario.uid
+    );
+    if (errorVal) {
+      mostrarMensaje(aviso, "error", errorVal);
+      return;
+    }
+
+    // Resumen de confirmación (modal propio, no confirm())
+    const precioTexto = typeof canchaActual.precioHora === "number"
+      ? `$${canchaActual.precioHora.toFixed(2)} por hora`
+      : "Sin precio definido";
+    const ok = await confirmarModal({
+      titulo: "Confirmar reserva",
+      mensaje: "Revisa los datos antes de confirmar tu reserva:",
+      contenido: [
+        { etiqueta: "Cancha", valor: canchaActual.nombre || "—" },
+        { etiqueta: "Tipo", valor: canchaActual.tipo || "—" },
+        { etiqueta: "Ubicación", valor: canchaActual.ubicacion || "—" },
+        { etiqueta: "Fecha", valor: formatearFechaLarga(ultimaFechaConsultada) },
+        { etiqueta: "Horario", valor: `${bloque.inicio} – ${bloque.fin}` },
+        { etiqueta: "Precio", valor: precioTexto }
+      ],
+      textoAceptar: "CONFIRMAR RESERVA",
+      claseAceptar: "btn-primario"
+    });
+    if (!ok) return;
+
+    // Transacción anti doble-reserva (ID determinista + runTransaction)
+    await crearReserva(canchaActual, ultimaFechaConsultada, bloque.inicio, bloque.fin);
+
+    mostrarMensaje(aviso, "exito", "✅ Reserva confirmada. El horario ya aparece como ocupado.");
+    anadirEnlaceMisReservas(aviso);
+    await refrescarBloques(); // el bloque pasa a ocupado sin recargar la página
+    boton.dataset.conservaEstado = "true"; // el DOM se pintó de nuevo; no restaurar botón viejo
+  } catch (error) {
+    if (error && error.code === "horario-ocupado") {
+      mostrarMensaje(aviso, "error",
+        "Otro usuario acaba de reservar este horario. Se actualizó la disponibilidad.");
+      await refrescarBloques();
+    } else if (error && String(error.code || "").startsWith("permission-denied")) {
+      mostrarMensaje(aviso, "error",
+        "No tienes permisos para reservar. Verifica que las reglas de firestore.rules estén publicadas en Firebase.");
+    } else {
+      mostrarMensaje(aviso, "error",
+        (error && error.message) || "No se pudo completar la reserva. Inténtalo de nuevo.");
+    }
+  } finally {
+    reservandoEnCurso = false;
+    if (document.body.contains(boton) && boton.dataset.conservaEstado !== "true") {
+      restaurar();
+    }
   }
 }
 
@@ -172,9 +281,10 @@ function pintarBloques(bloques, fecha) {
     const btn = document.createElement("button");
     btn.type = "button";
     if (bloque.estado === "disponible") {
-      btn.textContent = "Reservar (Sprint #3)";
-      btn.disabled = true;
-      btn.title = "La creación de reservas estará disponible en el próximo sprint.";
+      // Sprint #3: botón activo
+      btn.textContent = "Reservar";
+      btn.classList.add("btn-reservar-bloque");
+      btn.addEventListener("click", () => iniciarReserva(bloque, btn));
     } else if (bloque.estado === "ocupado") {
       btn.textContent = "Ocupado";
       btn.disabled = true;
