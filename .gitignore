@@ -17,3 +17,6 @@ Thumbs.db
 # Residuos de Python
 __pycache__/
 *.pyc
+
+# Paquetes/bundles de Git (artefactos de transferencia, no versionar)
+*.bundle
