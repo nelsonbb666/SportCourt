@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="privada">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1>👋 ¡Bienvenido!</h1>
+      <p class="descripcion" id="saludo-dashboard">Cargando tu información...</p>
+      <span class="badge-sesion" id="badge-correo">Sesión activa</span>
+      <div class="mensaje" id="aviso-dashboard"></div>
+    </section>
+
+    <!-- Sprint #2: catálogo y disponibilidad de canchas -->
+    <section class="panel">
+      <h2>🏟️ Canchas deportivas</h2>
+      <p class="descripcion">
+        Consulta las canchas registradas y su disponibilidad por fecha, o mantén tus
+        datos actualizados en <a href="perfil.html" style="color: var(--verde); font-weight: 600;">Mi perfil</a>.
+      </p>
+      <div class="hero-acciones" style="margin-top: 1rem;">
+        <a href="canchas.html" class="btn btn-primario">CONSULTAR CANCHA</a>
+        <a href="mis-reservas.html" class="btn btn-contorno">CONSULTAR MIS RESERVAS</a>
+      </div>
+    </section>
+
+    <!-- Sprint #3: reserva de horarios -->
+    <section class="panel">
+      <h2>📅 Reserva de horarios</h2>
+      <p class="descripcion">
+        Elige una cancha, consulta la disponibilidad por fecha y reserva tu
+        horario. Luego puedes ver o cancelar tus reservas en
+        <a href="mis-reservas.html" style="color: var(--verde); font-weight: 600;">Mis reservas</a>.
+      </p>
+      <div class="hero-acciones" style="margin-top: 1rem;">
+        <a href="disponibilidad.html" class="btn btn-primario">RESERVAR HORARIO</a>
+        <a href="mis-reservas.html" class="btn btn-contorno">MIS RESERVAS</a>
+      </div>
+    </section>
+
+    <!-- Sprint #4: accesos rápidos del administrador (oculto para usuarios normales) -->
+    <section class="panel panel-admin" id="panel-admin" hidden>
+      <h2>🛠️ Administración</h2>
+      <p class="descripcion">
+        Accesos rápidos para cuentas con rol <strong>admin</strong>: consulta todas las
+        reservas del sistema, gestiona canchas y administra las cuentas de usuarios.
+      </p>
+      <div class="hero-acciones" style="margin-top: 1rem;">
+        <a href="admin-panel.html" class="btn btn-primario">PANEL DE CONTROL</a>
+        <a href="admin-reservas.html" class="btn btn-primario">RESERVAS</a>
+        <a href="admin-usuarios.html" class="btn btn-primario">USUARIOS</a>
+        <a href="admin-reportes.html" class="btn btn-contorno">REPORTES</a>
+        <a href="admin-cancha-form.html" class="btn btn-contorno">REGISTRAR CANCHA</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #4: Administración de Reservas</footer>
+
+  <script type="module">
+    // guard.js ya protege esta página (data-page="privada") y pinta la navbar.
+    import "../js/guard.js";
+    import { esAdmin } from "../js/guard.js";
+    import { auth, db } from "../js/firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    onAuthStateChanged(auth, async (usuario) => {
+      if (!usuario) return; // guard.js se encarga de redirigir.
+      const saludo = document.getElementById("saludo-dashboard");
+      const badge = document.getElementById("badge-correo");
+
+      // Mensaje pendiente (ej.: redirect desde una página de admin sin permisos).
+      const msg = new URLSearchParams(window.location.search).get("msg");
+      const aviso = document.getElementById("aviso-dashboard");
+      if (msg && aviso) {
+        aviso.textContent = msg;
+        aviso.classList.add("visible", "mensaje-error");
+      }
+
+      try {
+        const snap = await getDoc(doc(db, "usuarios", usuario.uid));
+        const perfil = snap.exists() ? snap.data() : {};
+        const nombre = perfil.nombre || "campeón/a";
+        saludo.textContent = `Hola ${nombre}, tu cuenta está lista para reservar canchas.`;
+        badge.textContent = `📧 ${usuario.email}${perfil.rol === "admin" ? " · Administrador" : ""}`;
+      } catch (_) {
+        saludo.textContent = "Tu cuenta está lista para reservar canchas.";
+        badge.textContent = `📧 ${usuario.email}`;
+      }
+
+      // Sprint #4: mostrar el panel de administración solo a admins.
+      if (await esAdmin()) {
+        const panel = document.getElementById("panel-admin");
+        if (panel) panel.hidden = false;
+      }
+    });
+  </script>
+</body>
+</html>

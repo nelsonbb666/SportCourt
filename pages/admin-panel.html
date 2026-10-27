@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de control | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="admin">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1>📊 Panel de control</h1>
+      <p class="descripcion">
+        Visión general del sistema para el administrador: reservas por periodo,
+        canchas activas, usuarios registrados e ingresos. Solo visible para
+        cuentas con rol <strong>admin</strong>.
+      </p>
+      <div class="mensaje" id="aviso-panel"></div>
+      <div class="hero-acciones" style="margin-top: 1rem;">
+        <button type="button" class="btn btn-primario" id="btn-actualizar">Actualizar</button>
+        <span class="sello-actualizacion" id="sello-actualizacion"></span>
+      </div>
+    </section>
+
+    <!-- Indicadores (Sprint #5) -->
+    <section class="indicadores-grid" aria-label="Indicadores principales">
+      <div class="indicador-tarjeta">
+        <span class="indicador-num" id="ind-hoy-num">…</span>
+        <span class="indicador-etq">Reservas de hoy</span>
+        <span class="indicador-sub" id="ind-hoy-sub">Consultando…</span>
+      </div>
+      <div class="indicador-tarjeta">
+        <span class="indicador-num" id="ind-semana-num">…</span>
+        <span class="indicador-etq">Reservas de la semana</span>
+        <span class="indicador-sub" id="ind-semana-sub">Consultando…</span>
+      </div>
+      <div class="indicador-tarjeta">
+        <span class="indicador-num" id="ind-mes-num">…</span>
+        <span class="indicador-etq">Reservas del mes</span>
+        <span class="indicador-sub" id="ind-mes-sub">Consultando…</span>
+      </div>
+      <div class="indicador-tarjeta">
+        <span class="indicador-num" id="ind-canchas-num">…</span>
+        <span class="indicador-etq">Canchas activas</span>
+        <span class="indicador-sub" id="ind-canchas-sub">Consultando…</span>
+      </div>
+      <div class="indicador-tarjeta">
+        <span class="indicador-num" id="ind-usuarios-num">…</span>
+        <span class="indicador-etq">Usuarios registrados</span>
+        <span class="indicador-sub" id="ind-usuarios-sub">Consultando…</span>
+      </div>
+    </section>
+
+    <!-- Ingresos (Sprint #5) -->
+    <section class="panel">
+      <h2>💰 Ingresos</h2>
+      <p class="descripcion">
+        Total de ingresos de las reservas <strong>confirmadas</strong> en el
+        periodo seleccionado, con desglose por cancha.
+      </p>
+      <div class="mensaje" id="aviso-ingresos"></div>
+
+      <div class="filtros-canchas" aria-label="Selector de periodo">
+        <select id="sel-periodo" aria-label="Periodo de ingresos">
+          <option value="hoy">Hoy</option>
+          <option value="semana">Esta semana</option>
+          <option value="mes">Este mes</option>
+          <option value="personalizado">Rango personalizado</option>
+        </select>
+        <span id="campos-personalizados" hidden>
+          <input type="date" id="ing-desde" aria-label="Desde la fecha" title="Desde la fecha" />
+          <input type="date" id="ing-hasta" aria-label="Hasta la fecha" title="Hasta la fecha" />
+        </span>
+        <button type="button" class="btn btn-primario" id="btn-aplicar-ingresos">Aplicar</button>
+      </div>
+
+      <div id="detalle-ingresos" aria-live="polite"></div>
+    </section>
+
+    <!-- Enlaces rápidos (Sprint #4) -->
+    <section class="panel">
+      <h2>⚡ Accesos rápidos</h2>
+      <div class="hero-acciones" style="margin-top: 1rem;">
+        <a href="admin-reservas.html" class="btn btn-contorno">RESERVAS DEL SISTEMA</a>
+        <a href="admin-usuarios.html" class="btn btn-contorno">GESTIÓN DE USUARIOS</a>
+        <a href="admin-reportes.html" class="btn btn-contorno">REPORTES</a>
+      </div>
+    </section>
+
+    <p style="margin-top: 1.25rem;">
+      <a href="dashboard.html" class="enlace-volver" style="text-align:left;">← Volver al dashboard</a>
+    </p>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #5: Panel de Control y Reportes</footer>
+
+  <script type="module">
+    import "../js/guard.js"; // protege la página (solo admin) y pinta la navbar
+    import { initAdminPanel } from "../js/admin-panel.js";
+    initAdminPanel();
+  </script>
+</body>
+</html>

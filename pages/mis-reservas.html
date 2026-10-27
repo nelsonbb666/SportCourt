@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mis reservas | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="privada">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1>📅 Mis reservas</h1>
+      <p class="descripcion">
+        Consulta las reservas que has hecho, ordénalas por estado y cancela las
+        que ya no vayas a usar. Solo ves <strong>tus</strong> reservas.
+      </p>
+      <div class="mensaje" id="mensaje-reservas"></div>
+      <div class="hero-acciones" style="margin-top: 1rem;">
+        <button type="button" id="btn-recargar" class="btn btn-contorno">↻ Actualizar lista</button>
+        <a href="canchas.html" class="btn btn-primario">CONSULTAR CANCHA</a>
+      </div>
+    </section>
+
+    <!-- Pestañas Próximas / Pasadas / Canceladas generadas por reservas.js -->
+    <section id="lista-reservas" aria-live="polite"></section>
+
+    <p style="margin-top: 1.25rem;">
+      <a href="dashboard.html" class="enlace-volver" style="text-align:left;">← Volver al dashboard</a>
+    </p>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #4: Administración de Reservas</footer>
+
+  <script type="module">
+    import "../js/guard.js"; // protege la página y pinta la navbar
+    import { initMisReservas } from "../js/reservas.js";
+    initMisReservas();
+  </script>
+</body>
+</html>

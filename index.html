@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reserva de Canchas | Inicio</title>
+  <meta name="description" content="Sistema web para reservar canchas deportivas. Regístrate e inicia sesión." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- Barra de navegación (se rellena dinámicamente con js/guard.js) -->
+  <nav class="navbar">
+    <a class="logo" href="index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links">
+      <!-- Enlaces generados por guard.js según el estado de sesión -->
+    </div>
+  </nav>
+
+  <main>
+    <!-- Bienvenida y acciones principales del Sprint #1 -->
+    <section class="hero">
+      <h1>Reserva tu cancha favorita en segundos</h1>
+      <p>
+        El nuevo sistema de reservas de canchas deportivas. Crea tu cuenta para acceder
+        a la reserva de canchas de fútbol, básquet, tenis y más (próximamente).
+      </p>
+      <div class="hero-acciones">
+        <a href="pages/registro.html" class="btn btn-primario">REGISTRAR USUARIO</a>
+        <a href="pages/login.html" class="btn btn-contorno">INICIAR SESIÓN</a>
+      </div>
+    </section>
+
+    <!-- Vista previa deportiva (base visual para futuras reservas) -->
+    <section class="canchas-preview" aria-label="Deportes disponibles próximamente">
+      <article class="tarjeta-deporte">
+        <div class="icono">⚽</div>
+        <h3>Fútbol</h3>
+        <p>Canchas de microfútbol y fútbol sala.</p>
+      </article>
+      <article class="tarjeta-deporte">
+        <div class="icono">🏀</div>
+        <h3>Básquet</h3>
+        <p>Canchas techadas y al aire libre.</p>
+      </article>
+      <article class="tarjeta-deporte">
+        <div class="icono">🎾</div>
+        <h3>Tenis</h3>
+        <p>Canchas de tierra y sintéticas.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 Reserva de Canchas — Sprint #2: Gestión de Canchas
+  </footer>
+
+  <!-- Módulo que gestiona la navbar pública/privada -->
+  <script type="module" src="js/guard.js"></script>
+</body>
+</html>

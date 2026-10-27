@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recuperar contraseña | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="auth-publica">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="contenedor-formulario">
+      <h1>Recuperar contraseña</h1>
+      <p class="subtitulo">
+        Ingresa el correo con el que te registraste y te enviaremos un enlace para
+        que definas una nueva contraseña.
+      </p>
+
+      <div id="mensaje" class="mensaje" role="alert" aria-live="polite"></div>
+
+      <form id="form-recuperar" novalidate>
+        <div class="form-grupo">
+          <label for="correo">Correo electrónico <span class="obligatorio">*</span></label>
+          <input type="email" id="correo" name="correo" placeholder="tucorreo@ejemplo.com" autocomplete="email" required />
+        </div>
+
+        <button type="submit" id="btn-recuperar" class="btn btn-primario btn-bloque">ENVIAR INSTRUCCIONES</button>
+
+        <p class="form-enlaces">
+          <a href="login.html">← Volver a iniciar sesión</a>
+        </p>
+      </form>
+    </section>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #1: Gestión de Usuarios</footer>
+
+  <script type="module">
+    // guard.js pinta la navbar dinámica según el estado de sesión.
+    import "../js/guard.js";
+    import { recuperarPassword } from "../js/auth.js";
+    import { esCorreoValido, mostrarMensaje, limpiarMensaje, bloquearBoton } from "../js/utils.js";
+
+    const form = document.getElementById("form-recuperar");
+    const mensaje = document.getElementById("mensaje");
+    const btn = document.getElementById("btn-recuperar");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      limpiarMensaje(mensaje);
+
+      const correo = form.correo.value;
+      if (!correo.trim()) {
+        mostrarMensaje(mensaje, "error", "El correo electrónico es obligatorio.");
+        return;
+      }
+      if (!esCorreoValido(correo)) {
+        mostrarMensaje(mensaje, "error", "El formato del correo electrónico no es válido.");
+        return;
+      }
+
+      const desbloquear = bloquearBoton(btn, "Enviando...");
+      await recuperarPassword(correo); // Nunca falla visiblemente: mensaje genérico.
+      desbloquear();
+
+      // Mensaje genérico: no revela si el correo está o no registrado.
+      mostrarMensaje(
+        mensaje,
+        "exito",
+        "📬 Si el correo está registrado, recibirás instrucciones para restablecer tu contraseña."
+      );
+      form.reset();
+    });
+  </script>
+</body>
+</html>

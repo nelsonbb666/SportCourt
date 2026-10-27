@@ -1,0 +1,1276 @@
+/* ============================================================
+   Reserva de Canchas — Estilos globales (Sprint #1)
+   Tema deportivo: verde / blanco. Responsive con Flexbox y Grid.
+   ============================================================ */
+
+:root {
+  --verde: #1b8a4c;
+  --verde-oscuro: #136639;
+  --verde-claro: #e6f4ec;
+  --blanco: #ffffff;
+  --gris-texto: #33383d;
+  --gris-suave: #6b7280;
+  --gris-borde: #d5dbe1;
+  --rojo-error: #c62828;
+  --rojo-fondo: #fdecea;
+  --verde-exito: #1b7a43;
+  --verde-exito-fondo: #e6f4ec;
+  --sombra: 0 4px 14px rgba(19, 102, 57, 0.12);
+  --radio: 10px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--gris-texto);
+  background: #f6faf7;
+  line-height: 1.55;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Barra de navegación ---------- */
+.navbar {
+  background: var(--verde);
+  color: var(--blanco);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  box-shadow: var(--sombra);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.navbar .logo {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--blanco);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.nav-links a {
+  color: var(--blanco);
+  text-decoration: none;
+  font-size: 0.92rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.nav-links a:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.nav-links a.btn-nav {
+  background: var(--blanco);
+  color: var(--verde-oscuro);
+  font-weight: 600;
+}
+
+.nav-links a.btn-nav:hover {
+  background: var(--verde-claro);
+}
+
+#nav-saludo {
+  font-size: 0.88rem;
+  opacity: 0.95;
+}
+
+/* ---------- Contenedores ---------- */
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+.contenedor-formulario {
+  max-width: 480px;
+  margin: 1.5rem auto;
+  background: var(--blanco);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 2rem 1.75rem;
+}
+
+.contenedor-formulario h1 {
+  color: var(--verde-oscuro);
+  font-size: 1.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.contenedor-formulario .subtitulo {
+  color: var(--gris-suave);
+  font-size: 0.92rem;
+  margin-bottom: 1.4rem;
+}
+
+/* ---------- Página de inicio ---------- */
+.hero {
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+}
+
+.hero h1 {
+  font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+  color: var(--verde-oscuro);
+  margin-bottom: 0.6rem;
+}
+
+.hero p {
+  color: var(--gris-suave);
+  max-width: 620px;
+  margin: 0 auto 2rem;
+  font-size: 1.05rem;
+}
+
+.hero-acciones {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.canchas-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+.tarjeta-deporte {
+  background: var(--blanco);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  border-top: 4px solid var(--verde);
+}
+
+.tarjeta-deporte .icono {
+  font-size: 2.2rem;
+}
+
+.tarjeta-deporte h3 {
+  color: var(--verde-oscuro);
+  margin: 0.5rem 0 0.25rem;
+}
+
+.tarjeta-deporte p {
+  color: var(--gris-suave);
+  font-size: 0.88rem;
+}
+
+/* ---------- Formularios ---------- */
+.form-grupo {
+  margin-bottom: 1.1rem;
+}
+
+.form-grupo label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+  color: var(--gris-texto);
+}
+
+.form-grupo label .obligatorio {
+  color: var(--rojo-error);
+}
+
+.form-grupo input,
+.form-grupo select {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--gris-borde);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--blanco);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-grupo input:focus {
+  outline: none;
+  border-color: var(--verde);
+  box-shadow: 0 0 0 3px rgba(27, 138, 76, 0.15);
+}
+
+.form-grupo input[readonly] {
+  background: #f1f3f5;
+  color: var(--gris-suave);
+  cursor: not-allowed;
+}
+
+.form-grupo .ayuda {
+  font-size: 0.78rem;
+  color: var(--gris-suave);
+  margin-top: 0.3rem;
+}
+
+.form-enlaces {
+  margin-top: 1.1rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.form-enlaces a {
+  color: var(--verde);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.form-enlaces a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-block;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1.6rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.btn-primario {
+  background: var(--verde);
+  color: var(--blanco);
+}
+
+.btn-primario:hover:not(:disabled) {
+  background: var(--verde-oscuro);
+}
+
+.btn-contorno {
+  background: transparent;
+  color: var(--verde-oscuro);
+  border: 2px solid var(--verde);
+}
+
+.btn-contorno:hover:not(:disabled) {
+  background: var(--verde-claro);
+}
+
+.btn-peligro {
+  background: transparent;
+  color: var(--rojo-error);
+  border: 2px solid var(--rojo-error);
+}
+
+.btn-peligro:hover:not(:disabled) {
+  background: var(--rojo-fondo);
+}
+
+.btn-bloque {
+  width: 100%;
+}
+
+/* ---------- Mensajes en pantalla ---------- */
+.mensaje {
+  display: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 1.1rem;
+  border: 1px solid transparent;
+}
+
+.mensaje.visible {
+  display: block;
+}
+
+.mensaje-exito {
+  background: var(--verde-exito-fondo);
+  color: var(--verde-exito);
+  border-color: #a8d5ba;
+}
+
+.mensaje-error {
+  background: var(--rojo-fondo);
+  color: var(--rojo-error);
+  border-color: #f0b4ae;
+}
+
+/* ---------- Dashboard / perfil ---------- */
+.panel {
+  background: var(--blanco);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.panel h1,
+.panel h2 {
+  color: var(--verde-oscuro);
+  margin-bottom: 0.5rem;
+}
+
+.panel p.descripcion {
+  color: var(--gris-suave);
+  font-size: 0.95rem;
+}
+
+.badge-sesion {
+  display: inline-block;
+  background: var(--verde-claro);
+  color: var(--verde-oscuro);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+}
+
+.separador {
+  border: none;
+  border-top: 1px solid var(--gris-borde);
+  margin: 1.5rem 0;
+}
+
+/* ---------- Pie de página ---------- */
+footer {
+  background: var(--verde-oscuro);
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.82rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .nav-links {
+    justify-content: center;
+  }
+
+  main {
+    padding: 1.25rem 0.85rem;
+  }
+
+  .contenedor-formulario {
+    padding: 1.5rem 1.1rem;
+  }
+
+  .hero-acciones .btn {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   Sprint #2 — Canchas: filtros, tarjetas, disponibilidad, modal
+   ============================================================ */
+
+/* ---------- Barra de filtros del listado ---------- */
+.filtros {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde);
+  border-radius: var(--radio);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--sombra);
+}
+
+.filtros .campo-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1 1 180px;
+}
+
+.filtros label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gris-suave);
+}
+
+.filtros input,
+.filtros select {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--gris-borde);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--blanco);
+}
+
+/* ---------- Grid de tarjetas de cancha ---------- */
+.grid-canchas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.1rem;
+}
+
+.tarjeta-cancha {
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde);
+  border-left: 5px solid var(--verde);
+  border-radius: var(--radio);
+  padding: 1.1rem 1.2rem;
+  box-shadow: var(--sombra);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tarjeta-cancha h3 {
+  color: var(--verde-oscuro);
+  font-size: 1.1rem;
+}
+
+.tarjeta-cancha .dato {
+  font-size: 0.9rem;
+  color: var(--gris-texto);
+}
+
+.tarjeta-cancha .dato strong {
+  color: var(--gris-suave);
+  font-weight: 600;
+}
+
+.tarjeta-cancha .descripcion-cancha {
+  font-size: 0.87rem;
+  color: var(--gris-suave);
+}
+
+.etiquetas-cancha {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: var(--verde-claro);
+  color: var(--verde-oscuro);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.chip-inactiva {
+  background: #fdecea;
+  color: var(--rojo-error);
+}
+
+.acciones-cancha {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+.btn-mini {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-peligro {
+  background: var(--rojo-error);
+  color: var(--blanco);
+}
+
+.btn-peligro:hover:not(:disabled) {
+  background: #a21b1b;
+}
+
+/* ---------- Estado vacío y carga ---------- */
+.estado-vacio {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  background: var(--blanco);
+  border: 2px dashed var(--gris-borde);
+  border-radius: var(--radio);
+  color: var(--gris-suave);
+}
+
+.indicador-carga {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 2rem;
+  color: var(--verde-oscuro);
+  font-weight: 600;
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--verde-claro);
+  border-top-color: var(--verde);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Bloques de horarios (disponibilidad) ---------- */
+.resumen-disponibilidad {
+  font-weight: 600;
+  color: var(--verde-oscuro);
+  margin: 0.5rem 0 1rem;
+}
+
+.leyenda {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: var(--gris-suave);
+}
+
+.leyenda .cuadro {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: 0.35rem;
+}
+
+.cuadro-disponible { background: var(--verde); }
+.cuadro-ocupado { background: #b9c2cb; }
+.cuadro-pasado { background: #e8a4a4; }
+
+.grid-horarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.7rem;
+}
+
+.bloque-horario {
+  border-radius: 8px;
+  padding: 0.6rem 0.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 1px solid var(--gris-borde);
+}
+
+.bloque-horario .hora {
+  font-size: 0.95rem;
+}
+
+.bloque-disponible {
+  background: var(--verde-claro);
+  border-color: var(--verde);
+  color: var(--verde-oscuro);
+}
+
+.bloque-ocupado {
+  background: #eceff2;
+  color: #7c8794;
+  text-decoration: line-through;
+}
+
+.bloque-pasado {
+  background: #fdecea;
+  border-color: #f2b8b8;
+  color: #b05252;
+}
+
+.bloque-horario button {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: var(--verde);
+  color: var(--blanco);
+  font-weight: 600;
+}
+
+.bloque-horario button:disabled {
+  background: #cfd6dc;
+  color: #7c8794;
+  cursor: not-allowed;
+}
+
+/* ---------- Modal de confirmación ---------- */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 32, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+}
+
+.modal-fondo[hidden] {
+  display: none;
+}
+
+.modal-caja {
+  background: var(--blanco);
+  border-radius: var(--radio);
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+.modal-caja h3 {
+  color: var(--verde-oscuro);
+  margin-bottom: 0.5rem;
+}
+
+.modal-caja p {
+  color: var(--gris-texto);
+  font-size: 0.95rem;
+  margin-bottom: 1.25rem;
+}
+
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* ---------- Responsive extra Sprint #2 ---------- */
+@media (max-width: 600px) {
+  .grid-canchas {
+    grid-template-columns: 1fr;
+  }
+
+  .filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grid-horarios {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+/* ---------- Extra formulario cancha (Sprint #2) ---------- */
+.form-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.form-grupo textarea {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--gris-borde);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: var(--blanco);
+  resize: vertical;
+}
+
+.form-grupo.campo-check label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--gris-texto);
+  cursor: pointer;
+}
+
+.form-grupo.campo-check input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--verde);
+}
+
+.enlace-volver {
+  display: inline-block;
+  margin-top: 1rem;
+  text-align: center;
+  width: 100%;
+  color: var(--verde);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.enlace-volver:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .form-doble {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   Sprint #3 — Reservas: tarjetas, pestañas y estados
+   ============================================================ */
+
+/* Botón "Reservar" activo dentro de los bloques de horario */
+.btn-reservar-bloque {
+  margin-top: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--blanco);
+  background: var(--verde);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-reservar-bloque:hover {
+  background: var(--verde-oscuro, #1b6e36);
+}
+
+.btn-reservar-bloque:disabled {
+  background: var(--gris, #9aa5a0);
+  cursor: not-allowed;
+}
+
+/* Enlace "Ver mis reservas" tras confirmar */
+.enlace-mis-reservas {
+  display: inline-block;
+  margin-top: 0.4rem;
+  color: var(--blanco);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* Resumen del modal (etiqueta: valor) */
+.modal-resumen {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 0.9rem;
+  margin: 0.9rem 0 0.25rem;
+  text-align: left;
+}
+
+.modal-resumen dt {
+  font-weight: 700;
+  color: var(--gris-texto);
+}
+
+.modal-resumen dd {
+  margin: 0;
+  color: var(--verde-oscuro, #1b6e36);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.modal-texto {
+  margin: 0.25rem 0 0;
+}
+
+/* Pestañas de Mis reservas */
+.tabs-reservas {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.tab-boton {
+  padding: 0.55rem 1.1rem;
+  border: 2px solid var(--verde);
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--verde);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-boton:hover {
+  background: rgba(27, 110, 54, 0.08);
+}
+
+.tab-boton.activo {
+  background: var(--verde);
+  color: var(--blanco);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.visible {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .tab-panel.visible {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tarjeta de reserva */
+.tarjeta-reserva {
+  background: var(--blanco);
+  border-radius: 12px;
+  border-left: 6px solid var(--gris, #9aa5a0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tarjeta-reserva.estado-proximas { border-left-color: var(--verde); }
+.tarjeta-reserva.estado-pasadas { border-left-color: var(--gris, #9aa5a0); }
+.tarjeta-reserva.estado-canceladas { border-left-color: #c0392b; opacity: 0.85; }
+
+.tarjeta-reserva-cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tarjeta-reserva-cab h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--verde-oscuro, #1b6e36);
+}
+
+/* Estados con color Y texto (accesibilidad) */
+.badge-estado {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.badge-proximas { background: rgba(27, 110, 54, 0.14); color: var(--verde-oscuro, #1b6e36); }
+.badge-pasadas { background: rgba(120, 130, 126, 0.18); color: #4d5754; }
+.badge-canceladas { background: rgba(192, 57, 43, 0.12); color: #c0392b; }
+
+.datos-reserva {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 0.9rem;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.datos-reserva dt {
+  font-weight: 700;
+  color: var(--gris-texto);
+}
+
+.datos-reserva dd {
+  margin: 0;
+  color: #2f3a36;
+  word-break: break-word;
+}
+
+.tarjeta-reserva-pie {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-sm {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+}
+
+.estado-vacioCompacto {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--gris-texto);
+  padding: 2rem 1rem;
+  background: var(--blanco);
+  border-radius: 12px;
+}
+
+/* ============================================================
+   Sprint #4 — Administración de reservas y usuarios
+   ============================================================ */
+
+/* ---------- Contadores resumen ---------- */
+
+.contadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.contador {
+  background: var(--blanco);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.contador-num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--verde);
+}
+
+.contador-etq {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gris-texto);
+}
+
+/* ---------- Tabla de reservas responsive ---------- */
+
+.tabla-responsive {
+  overflow-x: auto;
+  background: var(--blanco);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tabla-reservas {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.tabla-reservas th,
+.tabla-reservas td {
+  padding: 0.75rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 0.92rem;
+  vertical-align: middle;
+}
+
+.tabla-reservas thead th {
+  background: var(--verde);
+  color: #fff;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  position: sticky;
+  top: 0;
+}
+
+.tabla-reservas tbody tr:hover {
+  background: rgba(46, 160, 67, 0.06);
+}
+
+.tabla-reservas small {
+  color: var(--gris-texto);
+  font-size: 0.8rem;
+}
+
+/* En móvil cada fila se convierte en tarjeta (data-label como etiqueta) */
+@media (max-width: 720px) {
+  .tabla-responsive { overflow-x: visible; box-shadow: none; background: transparent; }
+  .tabla-reservas { min-width: 0; }
+  .tabla-reservas thead { display: none; }
+  .tabla-reservas tbody, .tabla-reservas tr, .tabla-reservas td { display: block; width: 100%; }
+  .tabla-reservas tr.fila-reserva-movil {
+    background: var(--blanco);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 0.9rem;
+    padding: 0.5rem 0.25rem;
+  }
+  .tabla-reservas td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: none;
+    padding: 0.45rem 0.9rem;
+  }
+  .tabla-reservas td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    color: var(--gris-texto);
+    flex-shrink: 0;
+  }
+}
+
+/* ---------- Badges de estado adicionales (Sprint #4) ---------- */
+
+.badge-pasada {
+  background: #eceff1;
+  color: #546e7a;
+}
+
+.badge-activo {
+  background: rgba(46, 160, 67, 0.15);
+  color: var(--verde);
+}
+
+.badge-inactivo {
+  background: #fdecea;
+  color: #c62828;
+}
+
+.badge-rol-admin {
+  background: #fff3cd;
+  color: #8a6d00;
+}
+
+.badge-rol-usuario {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+/* ---------- Filtros con inputs de fecha ---------- */
+
+.filtros-canchas input[type="date"],
+.filtros-canchas input[type="search"],
+.filtros-canchas select {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #d7dde2;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  background: var(--blanco);
+  min-width: 140px;
+}
+
+/* ---------- Lista de usuarios (admin) ---------- */
+
+.lista-usuarios {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.tarjeta-usuario {
+  background: var(--blanco);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  justify-content: space-between;
+}
+
+.tarjeta-usuario-datos { flex: 1 1 260px; min-width: 0; }
+
+.tarjeta-usuario-datos h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1.05rem;
+  color: var(--verde-oscuro, #1b5e20);
+  word-break: break-word;
+}
+
+.tarjeta-usuario-datos p {
+  margin: 0.1rem 0;
+  font-size: 0.88rem;
+  color: var(--gris-texto);
+  word-break: break-word;
+}
+
+.tarjeta-usuario-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ---------- Panel/modal de detalle de usuario ---------- */
+
+.detalle-reservas-lista {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.detalle-reserva-item {
+  border: 1px solid #e3e8ec;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.modal-caja { max-width: 560px; overflow-y: auto; max-height: 85vh; }
+
+.modal-campo-label {
+  display: block;
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gris-texto);
+}
+
+.modal-campo-input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #d7dde2;
+  border-radius: 10px;
+  font-size: 0.92rem;
+}
+
+/* Accesos rápidos de admin en el dashboard */
+.panel-admin { border-left: 4px solid var(--verde); }
+
+/* ============================================================
+   Sprint #5: Panel de control y Reportes
+   ============================================================ */
+
+/* ---------- Tarjetas de indicadores ---------- */
+.indicadores-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+  margin: 1.25rem 0;
+}
+@media (min-width: 640px) { .indicadores-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 980px) { .indicadores-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1240px) { .indicadores-grid { grid-template-columns: repeat(5, 1fr); } }
+
+.indicador-tarjeta {
+  background: var(--blanco, #fff);
+  border: 1px solid #e3e8ec;
+  border-top: 4px solid var(--verde);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.indicador-num {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--verde-oscuro, #1b5e20);
+  line-height: 1.1;
+}
+.indicador-num.ind-error { color: #b3261e; font-size: 1.4rem; }
+.indicador-etq { font-weight: 700; color: var(--gris-texto, #37474f); }
+.indicador-sub { font-size: 0.8rem; color: #78909c; }
+
+.sello-actualizacion { font-size: 0.85rem; color: #78909c; align-self: center; }
+
+/* ---------- Ingresos ---------- */
+.total-ingresos {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  background: #e8f5e9;
+  border: 1px solid var(--verde);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+.total-ingresos strong { font-size: 1.4rem; color: var(--verde-oscuro, #1b5e20); }
+.nota-canceladas { font-size: 0.85rem; color: #78909c; font-style: italic; }
+.fila-total td { font-weight: 800; background: #f1f8f2; }
+
+.tabla-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---------- Reportes ---------- */
+.resumen-reporte {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.resumen-dato {
+  border: 1px solid #e3e8ec;
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+  background: #fafafa;
+}
+.resumen-dato strong { display: block; font-size: 1.3rem; color: var(--verde-oscuro, #1b5e20); }
+.resumen-dato span { font-size: 0.8rem; color: #78909c; }
+
+/* ---------- Impresión (solo el reporte) ---------- */
+@media print {
+  .navbar, footer, .no-print, #nav-links, .hero-acciones, .filtros-canchas,
+  .mensaje, #panel-admin { display: none !important; }
+  body { background: #fff; color: #000; }
+  main { max-width: 100%; padding: 0; margin: 0; }
+  .panel { border: none; box-shadow: none; padding: 0.25rem 0; }
+  .tabla-scroll { overflow: visible; }
+  .tabla-reservas { width: 100%; border-collapse: collapse; }
+  .tabla-reservas th, .tabla-reservas td {
+    border: 1px solid #999; color: #000; background: transparent;
+  }
+  a { color: #000; text-decoration: none; }
+}
+
+/* Etiquetas visuales para campos de fecha en filtros (Sprint #5) */
+.sr-label { font-size: 0.8rem; color: #78909c; align-self: flex-end; }
