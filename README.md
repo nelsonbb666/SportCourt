@@ -370,11 +370,56 @@ Necesitas **dos cuentas de usuario normal** (A y B) y una cancha activa creada p
 9. Sin publicar las reglas nuevas, reservar falla con *"No tienes permisos..."* →
    publícalas. Un usuario normal no puede borrar reservas (`delete` solo admin). ✔️
 
+## 🛡️ Sprint #4: Administración de Reservas
+
+Panel del administrador para controlar todas las reservas del sistema y gestionar las cuentas de usuario.
+
+### Nuevas páginas y archivos
+
+- `pages/admin-reservas.html` + `js/admin-reservas.js`: listado de **todas las reservas** con filtros (rango de fechas, cancha, estado, búsqueda por nombre/correo), contadores (total, confirmadas, canceladas, de hoy), orden invertible, "Cargar más", cancelación por el admin con motivo y **exportación a CSV**.
+- `pages/admin-usuarios.html` + `js/admin-usuarios.js`: listado de usuarios con búsqueda y filtros por rol/estado, panel de detalle con sus reservas, y acciones de **activar/desactivar** y **cambiar rol** con modal de confirmación.
+- `js/reservas.js`: `cancelarReservaComoAdmin()` (registra `canceladaPor` y `motivoCancelacion`).
+- `js/utils.js`: helper de exportación CSV (BOM UTF-8 para Excel y protección anti inyección de fórmulas).
+
+### Campo `activo` en `usuarios`
+
+- El registro crea siempre `activo: true`. Los usuarios antiguos sin el campo se consideran **activos** (compatibilidad); para desactivar manualmente, agrega en Firestore el booleano `activo = false` al documento.
+- **Login:** si `activo === false`, se cierra la sesión de inmediato con el mensaje *"Tu cuenta está desactivada. Contacta al administrador"*.
+- **`guard.js`:** una sesión ya abierta de un usuario inactivo se cierra y redirige al login con el mismo mensaje.
+- **Reglas:** un usuario inactivo no puede crear reservas (`usuarioActivo()`).
+
+### Protecciones obligatorias del admin
+
+- Un administrador **no puede desactivarse ni quitarse el rol a sí mismo**.
+- Debe quedar **siempre al menos un administrador activo** (la acción se bloquea si sería el último).
+
+### ⚠️ Limitación técnica (sin backend)
+
+Desde el navegador **no se puede eliminar ni deshabilitar cuentas de Firebase Authentication de otros usuarios** (requiere Admin SDK o Cloud Functions). Por eso la gestión de cuentas se implementa sobre Firestore con el campo `activo`. Si más adelante se necesita eliminación real, se haría con una Cloud Function que use `admin.auth().deleteUser(uid)`.
+
+### 🔐 Publicar las reglas (obligatorio)
+
+`firestore.rules` incluye ahora `usuarioActivo()`, lectura de perfiles por admin, actualización restringida de `rol`/`activo` y bloqueo de reservas a inactivos. Copia el archivo completo en Firebase Console → Firestore → Reglas → **Publicar**.
+
+### ✅ Cómo probar el Sprint #4 (pruebas manuales)
+
+1. Admin abre **"Reservas"** y ve usuario, cancha, fecha y hora de todas las reservas. ✔
+2. Los filtros por fecha, cancha, estado y usuario devuelven resultados correctos. ✔
+3. Admin cancela la reserva de otro usuario → el horario vuelve a estar disponible. ✔
+4. Usuario normal intenta abrir `admin-reservas.html` o `admin-usuarios.html` por URL → es redirigido al dashboard. ✔
+5. Admin abre **"Usuarios"**, ve la lista y el detalle con las reservas de un usuario. ✔
+6. Admin desactiva a un usuario → ese usuario no puede iniciar sesión (ni seguir usando una sesión abierta). ✔
+7. Admin reactiva al usuario → vuelve a ingresar. ✔
+8. Admin cambia el rol de un usuario → ese usuario ve (o deja de ver) las opciones de administración. ✔
+9. Admin intenta desactivarse o quitarse el rol a sí mismo → se bloquea. ✔
+10. Un usuario normal intenta cambiar su propio `rol` o `activo` desde la consola del navegador → las reglas lo rechazan. ✔
+
 ## 🗺️ Roadmap
 
-- ✅ Sprint #1: Gestión de usuarios (este entregable)
-- ✅ Sprint #2: Gestión de canchas, roles y disponibilidad (este entregable)
-- ✅ Sprint #3: Gestión de reservas: reservar, consultar y cancelar (este entregable)
+- ✅ Sprint #1: Gestión de usuarios
+- ✅ Sprint #2: Gestión de canchas, roles y disponibilidad
+- ✅ Sprint #3: Gestión de reservas: reservar, consultar y cancelar
+- ✅ Sprint #4: Administración de reservas y gestión de usuarios (panel de admin)
 
 ## 📄 Licencia
 
