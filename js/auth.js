@@ -14,7 +14,26 @@ import {
   signOut,
   sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ---------- Bloqueo de cuentas inactivas (Sprint #4) ---------- */
+
+/**
+ * ¿La cuenta está desactivada por un administrador?
+ * Campo `activo` en el documento de "usuarios". Para usuarios antiguos sin
+ * el campo se asume true (activo). Si no se puede leer el perfil (por
+ * ejemplo reglas mal publicadas), se deja pasar para no bloquear el login:
+ * la protección real del backend son las reglas de Firestore.
+ */
+async function estaInactivo(uid) {
+  try {
+    const snap = await getDoc(doc(db, "usuarios", uid));
+    if (!snap.exists()) return false;
+    return snap.data().activo === false; // undefined → activo (compatibilidad)
+  } catch (_) {
+    return false;
+  }
+}
 
 /* ---------- 1. Registro de usuario ---------- */
 
@@ -33,6 +52,7 @@ export async function registrarUsuario({ nombre, correo, telefono, password }) {
       telefono: telefono.trim(),
       correo: correo.trim().toLowerCase(),
       rol: "usuario", // Sprint #2: "usuario" | "admin" (el admin se asigna a mano en Firebase Console)
+      activo: true,   // Sprint #4: los administradores pueden desactivar cuentas
       fechaCreacion: serverTimestamp()
       // ⚠️ Nunca guardar la contraseña aquí.
     });
@@ -50,11 +70,22 @@ export async function registrarUsuario({ nombre, correo, telefono, password }) {
 
 /**
  * Valida credenciales contra Firebase Auth.
- * @returns {Promise<{ok: boolean, error?: string}>}
+ * Sprint #4: si la cuenta está desactivada (campo `activo === false`),
+ * se cierra la sesión de inmediato y se devuelve el error "cuenta-inactiva".
+ * @returns {Promise<{ok: boolean, error?: string|Error}>}
  */
 export async function iniciarSesion({ correo, password }) {
   try {
-    await signInWithEmailAndPassword(auth, correo.trim(), password);
+    const cred = await signInWithEmailAndPassword(auth, correo.trim(), password);
+
+    // Bloqueo de cuentas desactivadas por el administrador.
+    if (await estaInactivo(cred.user.uid)) {
+      await signOut(auth);
+      const err = new Error("Tu cuenta está desactivada. Contacta al administrador.");
+      err.code = "cuenta-inactiva";
+      return { ok: false, error: err };
+    }
+
     return { ok: true };
   } catch (error) {
     return { ok: false, error };

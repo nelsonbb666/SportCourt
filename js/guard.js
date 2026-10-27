@@ -77,6 +77,24 @@ export async function esAdmin() {
   return !!perfil && perfil.rol === "admin";
 }
 
+/* ---------- Cuentas inactivas (Sprint #4) ---------- */
+
+/**
+ * Si el documento del usuario tiene `activo === false`, se cierra la sesión
+ * aunque ya estuviera abierta y se redirige al login con el mensaje.
+ * Usuarios antiguos sin el campo se consideran activos.
+ */
+async function cerrarSesionSiInactivo(usuario) {
+  if (!usuario) return false;
+  const perfil = await obtenerPerfil(usuario);
+  if (perfil && perfil.activo === false) {
+    await signOut(auth);
+    window.location.replace(`${enlace("pages/login.html")}?msg=${encodeURIComponent("Tu cuenta está desactivada. Contacta al administrador.")}`);
+    return true;
+  }
+  return false;
+}
+
 /* ---------- Navbar ---------- */
 
 async function pintarNavbar(usuario) {
@@ -103,6 +121,8 @@ async function pintarNavbar(usuario) {
     <a href="${enlace("pages/canchas.html")}">Consultar cancha</a>
     <a href="${enlace("pages/mis-reservas.html")}">Mis reservas</a>
     ${admin ? `<a href="${enlace("pages/admin-cancha-form.html")}">Registrar cancha</a>` : ""}
+    ${admin ? `<a href="${enlace("pages/admin-reservas.html")}">Reservas</a>` : ""}
+    ${admin ? `<a href="${enlace("pages/admin-usuarios.html")}">Usuarios</a>` : ""}
     <a href="${enlace("pages/perfil.html")}">Mi perfil</a>
     <span id="nav-saludo">${nombre ? `Hola, ${nombre} 👋` : "Sesión activa"}${admin ? " · Admin" : ""}</span>
     <a href="#" id="btn-logout" class="btn-nav">Cerrar sesión</a>
@@ -133,6 +153,11 @@ function irAlDashboard(mensaje) {
 onAuthStateChanged(auth, async (usuario) => {
   if (requiereSesion && !usuario) {
     redirigirALogin();
+    return;
+  }
+  // Sprint #4: si la sesión abierta pertenece a una cuenta desactivada,
+  // se cierra y se redirige al login con el mensaje correspondiente.
+  if (usuario && await cerrarSesionSiInactivo(usuario)) {
     return;
   }
   if (esPaginaAuthPublica && usuario) {
