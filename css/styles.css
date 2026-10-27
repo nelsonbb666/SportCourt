@@ -948,3 +948,238 @@ footer {
   background: var(--blanco);
   border-radius: 12px;
 }
+
+/* ============================================================
+   Sprint #4 — Administración de reservas y usuarios
+   ============================================================ */
+
+/* ---------- Contadores resumen ---------- */
+
+.contadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.contador {
+  background: var(--blanco);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.contador-num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--verde);
+}
+
+.contador-etq {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gris-texto);
+}
+
+/* ---------- Tabla de reservas responsive ---------- */
+
+.tabla-responsive {
+  overflow-x: auto;
+  background: var(--blanco);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tabla-reservas {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.tabla-reservas th,
+.tabla-reservas td {
+  padding: 0.75rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 0.92rem;
+  vertical-align: middle;
+}
+
+.tabla-reservas thead th {
+  background: var(--verde);
+  color: #fff;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  position: sticky;
+  top: 0;
+}
+
+.tabla-reservas tbody tr:hover {
+  background: rgba(46, 160, 67, 0.06);
+}
+
+.tabla-reservas small {
+  color: var(--gris-texto);
+  font-size: 0.8rem;
+}
+
+/* En móvil cada fila se convierte en tarjeta (data-label como etiqueta) */
+@media (max-width: 720px) {
+  .tabla-responsive { overflow-x: visible; box-shadow: none; background: transparent; }
+  .tabla-reservas { min-width: 0; }
+  .tabla-reservas thead { display: none; }
+  .tabla-reservas tbody, .tabla-reservas tr, .tabla-reservas td { display: block; width: 100%; }
+  .tabla-reservas tr.fila-reserva-movil {
+    background: var(--blanco);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 0.9rem;
+    padding: 0.5rem 0.25rem;
+  }
+  .tabla-reservas td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: none;
+    padding: 0.45rem 0.9rem;
+  }
+  .tabla-reservas td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    color: var(--gris-texto);
+    flex-shrink: 0;
+  }
+}
+
+/* ---------- Badges de estado adicionales (Sprint #4) ---------- */
+
+.badge-pasada {
+  background: #eceff1;
+  color: #546e7a;
+}
+
+.badge-activo {
+  background: rgba(46, 160, 67, 0.15);
+  color: var(--verde);
+}
+
+.badge-inactivo {
+  background: #fdecea;
+  color: #c62828;
+}
+
+.badge-rol-admin {
+  background: #fff3cd;
+  color: #8a6d00;
+}
+
+.badge-rol-usuario {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+/* ---------- Filtros con inputs de fecha ---------- */
+
+.filtros-canchas input[type="date"],
+.filtros-canchas input[type="search"],
+.filtros-canchas select {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #d7dde2;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  background: var(--blanco);
+  min-width: 140px;
+}
+
+/* ---------- Lista de usuarios (admin) ---------- */
+
+.lista-usuarios {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.tarjeta-usuario {
+  background: var(--blanco);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  justify-content: space-between;
+}
+
+.tarjeta-usuario-datos { flex: 1 1 260px; min-width: 0; }
+
+.tarjeta-usuario-datos h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1.05rem;
+  color: var(--verde-oscuro, #1b5e20);
+  word-break: break-word;
+}
+
+.tarjeta-usuario-datos p {
+  margin: 0.1rem 0;
+  font-size: 0.88rem;
+  color: var(--gris-texto);
+  word-break: break-word;
+}
+
+.tarjeta-usuario-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ---------- Panel/modal de detalle de usuario ---------- */
+
+.detalle-reservas-lista {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.detalle-reserva-item {
+  border: 1px solid #e3e8ec;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.modal-caja { max-width: 560px; overflow-y: auto; max-height: 85vh; }
+
+.modal-campo-label {
+  display: block;
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gris-texto);
+}
+
+.modal-campo-input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #d7dde2;
+  border-radius: 10px;
+  font-size: 0.92rem;
+}
+
+/* Accesos rápidos de admin en el dashboard */
+.panel-admin { border-left: 4px solid var(--verde); }

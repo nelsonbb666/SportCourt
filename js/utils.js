@@ -208,6 +208,64 @@ export function formatearFechaLarga(fecha) {
   return d.toLocaleDateString("es", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 }
 
+/* ---------- Etiquetas de estado (Sprint #4) ---------- */
+
+/** Texto visible del estado de una reserva (color + texto, nunca solo color). */
+export function etiquetaEstadoReserva(estado, esPasada) {
+  if (estado === "cancelada") return "Cancelada";
+  return esPasada ? "Pasada" : "Confirmada";
+}
+
+/** Clase CSS del badge según el estado de la reserva. */
+export function claseBadgeReserva(estado, esPasada) {
+  if (estado === "cancelada") return "badge-cancelada";
+  return esPasada ? "badge-pasada" : "badge-confirmada";
+}
+
+/** Texto visible del estado de una cuenta de usuario. */
+export function etiquetaEstadoCuenta(activo) {
+  return activo === false ? "Inactivo" : "Activo";
+}
+
+/** Clase CSS del badge según el estado de la cuenta. */
+export function claseBadgeCuenta(activo) {
+  return activo === false ? "badge-inactivo" : "badge-activo";
+}
+
+/* ---------- Exportación CSV (Sprint #4) ---------- */
+
+/**
+ * Escapa una celda CSV: comillas dobles y protección contra inyección de
+ * fórmulas en Excel (celdas que empiezan por =, +, - o @ se prefijan con ').
+ */
+function escaparCeldaCSV(valor) {
+  let texto = valor === null || valor === undefined ? "" : String(valor);
+  if (/^[=+\-@\t\r]/.test(texto)) texto = `'${texto}`;
+  if (/[",;\n]/.test(texto)) texto = `"${texto.replace(/"/g, '""')}"`;
+  return texto;
+}
+
+/**
+ * Genera y descarga un CSV desde el navegador (sin backend).
+ * @param {string} nombreArchivo - ej. "reservas.csv"
+ * @param {string[]} cabeceras
+ * @param {Array<Array<string|number|null>>} filas
+ */
+export function exportarCSV(nombreArchivo, cabeceras, filas) {
+  const lineas = [cabeceras.map(escaparCeldaCSV).join(",")];
+  for (const fila of filas) lineas.push(fila.map(escaparCeldaCSV).join(","));
+  // BOM UTF-8 para que Excel abra bien los acentos.
+  const blob = new Blob(["\uFEFF" + lineas.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombreArchivo;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 /* ============================================================
    Configuración y helpers del Sprint #3 (reservas)
    ============================================================ */
@@ -284,8 +342,11 @@ function cerrarModal(valor) {
  * - `mensaje` siempre va como texto plano (textContent).
  * - `contenido` (opcional): array de pares { etiqueta, valor } que se pintan
  *   como lista de resumen (usado al confirmar una reserva).
+ * - `campoOpcional` (Sprint #4, opcional): { etiqueta, placeholder } añade un
+ *   input de texto cuyo valor se lee tras confirmar mediante
+ *   document.getElementById("modal-input-valor").value
  */
-function pintarContenidoModal(mensaje, contenido) {
+function pintarContenidoModal(mensaje, contenido, campoOpcional) {
   const cuerpo = document.getElementById("modal-mensaje");
   cuerpo.innerHTML = "";
 
@@ -308,26 +369,43 @@ function pintarContenidoModal(mensaje, contenido) {
     }
     cuerpo.appendChild(dl);
   }
+
+  if (campoOpcional) {
+    const label = document.createElement("label");
+    label.className = "modal-campo-label";
+    label.htmlFor = "modal-input-valor";
+    label.textContent = campoOpcional.etiqueta || "Campo opcional";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "modal-input-valor";
+    input.className = "modal-campo-input";
+    input.placeholder = campoOpcional.placeholder || "";
+    input.maxLength = 200;
+    cuerpo.append(label, input);
+  }
 }
 
 /**
  * Abre un modal de confirmación reutilizable (sin usar confirm() del navegador).
  * @param {{titulo?: string, mensaje?: string, contenido?: Array<{etiqueta:string, valor:string}>,
- *          textoAceptar?: string, claseAceptar?: "btn-peligro"|"btn-primario"}} opciones
+ *          textoAceptar?: string, claseAceptar?: "btn-peligro"|"btn-primario",
+ *          campoOpcional?: {etiqueta: string, placeholder?: string}}} opciones
  * @returns {Promise<boolean>} true si el usuario confirma.
  */
 export function confirmarModal({
   titulo = "¿Estás seguro?", mensaje = "", contenido = null,
-  textoAceptar = "Confirmar", claseAceptar = "btn-peligro"
+  textoAceptar = "Confirmar", claseAceptar = "btn-peligro",
+  campoOpcional = null
 } = {}) {
   crearEstructuraModal();
   document.getElementById("modal-titulo").textContent = titulo;
-  pintarContenidoModal(mensaje, contenido);
+  pintarContenidoModal(mensaje, contenido, campoOpcional);
   const btnAceptar = document.getElementById("modal-aceptar");
   btnAceptar.textContent = textoAceptar;
   btnAceptar.classList.remove("btn-peligro", "btn-primario");
   btnAceptar.classList.add(claseAceptar === "btn-primario" ? "btn-primario" : "btn-peligro");
   document.getElementById("modal-fondo").hidden = false;
-  btnAceptar.focus();
+  const foco = document.getElementById("modal-input-valor") || btnAceptar;
+  foco.focus();
   return new Promise((resolver) => { resolveModal = resolver; });
 }

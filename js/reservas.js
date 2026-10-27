@@ -161,6 +161,32 @@ export async function cancelarReserva(reservaId) {
   });
 }
 
+/**
+ * Sprint #4 — Cancela una reserva como ADMINISTRADOR (cualquier usuario).
+ * Además del cambio de estado registra quién la canceló y el motivo opcional:
+ *   estado: "cancelada", canceladaEn, canceladaPor (UID), motivoCancelacion.
+ * No borra el documento: conserva el historial y libera el horario, que
+ * volverá a aparecer disponible en disponibilidad.html (generarBloques solo
+ * cuenta las reservas "confirmada").
+ */
+export async function cancelarReservaComoAdmin(reservaId, motivo = "") {
+  const usuario = auth.currentUser;
+  if (!usuario) throw new Error("Tu sesión expiró. Vuelve a iniciar sesión.");
+
+  const ref = doc(db, "reservas", reservaId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error("La reserva no existe.");
+  const datos = snap.data();
+  if (datos.estado !== "confirmada") throw new Error("Esta reserva ya no está vigente.");
+
+  await updateDoc(ref, {
+    estado: "cancelada",
+    canceladaEn: serverTimestamp(),
+    canceladaPor: usuario.uid,
+    motivoCancelacion: (motivo || "").trim() || null
+  });
+}
+
 /** Todas las reservas confirmadas del usuario en una fecha (para "Mis reservas" y validaciones). */
 export async function obtenerReservasConfirmadasDeUsuario(uid, fecha) {
   const q = query(

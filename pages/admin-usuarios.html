@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usuarios (administrador) | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="admin">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1>👥 Gestión de usuarios</h1>
+      <p class="descripcion">
+        Panel de administrador: consulta la información de los usuarios registrados y
+        gestiona sus cuentas con las acciones permitidas
+        (<strong>activar/desactivar</strong> y <strong>cambiar rol</strong>).
+      </p>
+      <p class="descripcion" style="font-size: 0.85rem;">
+        ⚠️ Por limitación técnica (sin backend propio), <strong>no se elimina la cuenta de
+        Firebase Authentication</strong>: desactivar una cuenta bloquea el acceso desde esta
+        aplicación. Consulta el README para la alternativa con Cloud Functions.
+      </p>
+      <div class="mensaje" id="mensaje-admin-usuarios"></div>
+    </section>
+
+    <!-- Búsqueda y filtros -->
+    <section class="filtros-canchas" aria-label="Filtros de usuarios">
+      <input type="search" id="u-busqueda" placeholder="Buscar por nombre o correo…" aria-label="Buscar usuario" />
+      <select id="u-rol" aria-label="Filtrar por rol">
+        <option value="">Todos los roles</option>
+        <option value="usuario">Usuarios</option>
+        <option value="admin">Administradores</option>
+      </select>
+      <select id="u-estado" aria-label="Filtrar por estado">
+        <option value="">Todas las cuentas</option>
+        <option value="activo">Activas</option>
+        <option value="inactivo">Inactivas</option>
+      </select>
+      <button type="button" class="btn btn-contorno" id="btn-limpiar-u">Limpiar filtros</button>
+      <button type="button" class="btn btn-contorno" id="btn-recargar-u">↻ Actualizar lista</button>
+    </section>
+
+    <!-- Lista generada por admin-usuarios.js -->
+    <section id="lista-usuarios" class="lista-usuarios" aria-live="polite"></section>
+
+    <p style="margin-top: 1.25rem;">
+      <a href="dashboard.html" class="enlace-volver" style="text-align:left;">← Volver al dashboard</a>
+    </p>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #4: Administración de Reservas</footer>
+
+  <script type="module">
+    import "../js/guard.js"; // protege la página (solo admin) y pinta la navbar
+    import { initAdminUsuarios } from "../js/admin-usuarios.js";
+    initAdminUsuarios();
+  </script>
+</body>
+</html>

@@ -66,6 +66,10 @@
     if (params.get("registrado") === "1") {
       mostrarMensaje(mensaje, "exito", "✅ Registro completado. Ya puedes iniciar sesión con tu correo y contraseña.");
     }
+    // Sprint #4: si guard.js cerró la sesión por cuenta desactivada, mostramos el motivo.
+    if (params.get("msg")) {
+      mostrarMensaje(mensaje, "error", params.get("msg"));
+    }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -94,7 +98,11 @@
           : enlace("pages/dashboard.html");
       } else {
         // Credenciales inválidas: mismo mensaje para correo inexistente o clave errónea.
-        mostrarMensaje(mensaje, "error", traducirErrorFirebase(resultado.error, "Las credenciales no son válidas."));
+        // Sprint #4: cuenta desactivada → su propio mensaje.
+        const esInactiva = resultado.error && resultado.error.code === "cuenta-inactiva";
+        mostrarMensaje(mensaje, "error", esInactiva
+          ? "Tu cuenta está desactivada. Contacta al administrador."
+          : traducirErrorFirebase(resultado.error, "Las credenciales no son válidas."));
       }
     });
   </script>

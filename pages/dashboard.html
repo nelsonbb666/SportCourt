@@ -47,13 +47,28 @@
         <a href="mis-reservas.html" class="btn btn-contorno">MIS RESERVAS</a>
       </div>
     </section>
+
+    <!-- Sprint #4: accesos rápidos del administrador (oculto para usuarios normales) -->
+    <section class="panel panel-admin" id="panel-admin" hidden>
+      <h2>🛠️ Administración</h2>
+      <p class="descripcion">
+        Accesos rápidos para cuentas con rol <strong>admin</strong>: consulta todas las
+        reservas del sistema, gestiona canchas y administra las cuentas de usuarios.
+      </p>
+      <div class="hero-acciones" style="margin-top: 1rem;">
+        <a href="admin-reservas.html" class="btn btn-primario">RESERVAS</a>
+        <a href="admin-usuarios.html" class="btn btn-primario">USUARIOS</a>
+        <a href="admin-cancha-form.html" class="btn btn-contorno">REGISTRAR CANCHA</a>
+      </div>
+    </section>
   </main>
 
-  <footer>© 2026 Reserva de Canchas — Sprint #3: Gestión de Reservas</footer>
+  <footer>© 2026 Reserva de Canchas — Sprint #4: Administración de Reservas</footer>
 
   <script type="module">
     // guard.js ya protege esta página (data-page="privada") y pinta la navbar.
     import "../js/guard.js";
+    import { esAdmin } from "../js/guard.js";
     import { auth, db } from "../js/firebase-config.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -80,6 +95,12 @@
       } catch (_) {
         saludo.textContent = "Tu cuenta está lista para reservar canchas.";
         badge.textContent = `📧 ${usuario.email}`;
+      }
+
+      // Sprint #4: mostrar el panel de administración solo a admins.
+      if (await esAdmin()) {
+        const panel = document.getElementById("panel-admin");
+        if (panel) panel.hidden = false;
       }
     });
   </script>
