@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reportes | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="admin">
+
+  <nav class="navbar no-print">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1 id="titulo-reporte">📄 Reporte de reservas</h1>
+      <p class="descripcion">
+        Genera un reporte de reservas por rango de fechas, con resumen e
+        ingresos. Puedes exportarlo a CSV o imprimirlo. Solo para cuentas
+        con rol <strong>admin</strong>.
+      </p>
+      <div class="mensaje" id="aviso-reportes"></div>
+
+      <!-- Formulario de rango (no se imprime) -->
+      <div class="filtros-canchas no-print" aria-label="Rango del reporte">
+        <label for="r-desde" class="sr-label">Desde:</label>
+        <input type="date" id="r-desde" aria-label="Fecha desde" title="Fecha desde" required />
+        <label for="r-hasta" class="sr-label">Hasta:</label>
+        <input type="date" id="r-hasta" aria-label="Fecha hasta" title="Fecha hasta" required />
+        <button type="button" class="btn btn-primario" id="btn-generar">GENERAR REPORTE</button>
+        <button type="button" class="btn btn-contorno" id="btn-csv" disabled>Exportar CSV</button>
+        <button type="button" class="btn btn-contorno" id="btn-imprimir" disabled>Imprimir</button>
+      </div>
+    </section>
+
+    <!-- Resultado: título del rango + resumen + tabla (esto es lo que se imprime) -->
+    <section id="resultado-reporte" aria-live="polite"></section>
+
+    <p style="margin-top: 1.25rem;" class="no-print">
+      <a href="admin-panel.html" class="enlace-volver" style="text-align:left;">← Volver al panel de control</a>
+    </p>
+  </main>
+
+  <footer class="no-print">© 2026 Reserva de Canchas — Sprint #5: Panel de Control y Reportes</footer>
+
+  <script type="module">
+    import "../js/guard.js"; // protege la página (solo admin) y pinta la navbar
+    import { initAdminReportes } from "../js/admin-reportes.js";
+    initAdminReportes();
+  </script>
+</body>
+</html>
