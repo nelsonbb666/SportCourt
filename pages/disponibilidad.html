@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Disponibilidad | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="privada">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1>🕒 Consultar disponibilidad</h1>
+      <p class="descripcion">
+        Selecciona una cancha y una fecha, elige un horario disponible y pulsa
+        <strong>Reservar</strong> para confirmar tu reserva al instante.
+      </p>
+      <div class="mensaje" id="mensaje-disponibilidad"></div>
+    </section>
+
+    <!-- Selector de cancha + fecha -->
+    <section class="filtros" aria-label="Selección de cancha y fecha">
+      <div class="campo-filtro" style="flex: 2 1 260px;">
+        <label for="selector-cancha">Cancha</label>
+        <select id="selector-cancha">
+          <option value="">Cargando canchas...</option>
+        </select>
+      </div>
+      <div class="campo-filtro">
+        <label for="fecha">Fecha</label>
+        <input type="date" id="fecha" />
+      </div>
+      <button type="button" id="btn-buscar" class="btn btn-primario">CONSULTAR HORARIOS</button>
+    </section>
+
+    <!-- Bloques de horario generados por disponibilidad.js -->
+    <section id="resultado-disponibilidad" aria-live="polite"></section>
+
+    <p style="margin-top: 1.25rem;">
+      <a href="canchas.html" class="enlace-volver" style="text-align:left;">← Volver al listado de canchas</a>
+    </p>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #4: Administración de Reservas</footer>
+
+  <script type="module">
+    import "../js/guard.js"; // protege la página y pinta la navbar
+    import { initDisponibilidad } from "../js/disponibilidad.js";
+    initDisponibilidad();
+  </script>
+</body>
+</html>

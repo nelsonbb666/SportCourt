@@ -1,0 +1,25 @@
+# Dependencias (el proyecto no usa Node, pero se previene por si se añaden herramientas)
+node_modules/
+
+# Entorno y sistema operativo
+.env
+.env.local
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Residuos de Python
+__pycache__/
+*.pyc
+
+# Paquetes/bundles de Git (artefactos de transferencia, no versionar)
+*.bundle
+
+# Archivos de transferencia base64 (artefactos de sincronización)
+*.bundle.b64

@@ -1,0 +1,108 @@
+rules_version = '2';
+
+/**
+ * ============================================================
+ * Reglas de seguridad de Cloud Firestore — Sprint #4
+ * ============================================================
+ * Publica este archivo en Firebase Console → Firestore Database → Rules
+ * (o mediante Firebase CLI: `firebase deploy --only firestore:rules`).
+ *
+ * Principios:
+ *  - "usuarios": el usuario lee su propio documento; el ADMIN lee todos y
+ *    puede cambiar rol/activo de OTROS (nunca el propio). El registro solo
+ *    crea cuentas con rol "usuario" y activo true. Nadie elimina perfiles.
+ *  - "canchas": cualquier usuario autenticado puede leer; solo admin
+ *    puede crear / actualizar / eliminar.
+ *  - "reservas": autenticados leen (necesario para marcar horarios
+ *    ocupados); solo un usuario ACTIVO puede CREAR una reserva propia
+ *    confirmada; se puede ACTUALIZAR para cancelar la propia o reutilizar
+ *    un horario ya cancelado; el admin puede modificar cualquiera
+ *    (cancelar reservas de otros) y es el único que puede eliminar.
+ *  - Ocultar botones en la interfaz NO es seguridad: estas reglas son
+ *    la protección real del backend.
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estaAutenticado() { return request.auth != null; }
+
+    function esAdmin() {
+      return estaAutenticado() &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.get('rol', 'usuario') == 'admin';
+    }
+
+    // Sprint #4: los usuarios desactivados no pueden crear reservas.
+    // get(...).data.get('activo', true): usuarios antiguos sin el campo
+    // se consideran activos (compatibilidad con datos del Sprint #1-#3).
+    function usuarioActivo() {
+      return estaAutenticado() &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.get('activo', true) == true;
+    }
+
+    // Perfil de usuario: uno por UID.
+    match /usuarios/{uid} {
+      // El usuario lee el suyo; el admin lee todos (panel "Usuarios").
+      allow read: if estaAutenticado() && (request.auth.uid == uid || esAdmin());
+
+      // Registro: solo cuenta propia, rol usuario y activa.
+      allow create: if estaAutenticado() && request.auth.uid == uid
+                    && request.resource.data.rol == 'usuario'
+                    && request.resource.data.activo == true;
+
+      // El usuario edita su perfil sin tocar rol ni activo;
+      // el admin puede cambiar rol y activo de OTROS (no el propio doc,
+      // lo que impide que un admin se auto-desactive o se quite el rol).
+      allow update: if (estaAutenticado() && request.auth.uid == uid
+                        && request.resource.data.rol == resource.data.rol
+                        && request.resource.data.get('activo', true) == resource.data.get('activo', true))
+                    || (esAdmin() && request.auth.uid != uid);
+
+      // Nunca se eliminan perfiles desde el cliente (sin Admin SDK).
+      allow delete: if false;
+    }
+
+    // Canchas: lectura para usuarios con sesión; escritura solo admin.
+    match /canchas/{canchaId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if esAdmin();
+    }
+
+    // Reservas: ID determinista canchaId_fecha_horaInicio (Sprint #3).
+    match /reservas/{reservaId} {
+      allow read: if estaAutenticado();
+
+      // Crear: solo usuario ACTIVO, para sí mismo, confirmada y con
+      // campos obligatorios válidos (lo demás lo valida la app).
+      allow create: if usuarioActivo()
+                    && request.resource.data.usuarioId == request.auth.uid
+                    && request.resource.data.estado == 'confirmada'
+                    && request.resource.data.canchaId is string
+                    && request.resource.data.fecha is string
+                    && request.resource.data.horaInicio is string
+                    && request.resource.data.horaFin is string;
+
+      // Reescribir una reserva cancelada propia (volver a reservar el mismo
+      // horario) o cancelar la propia; el admin puede modificar cualquiera
+      // (Sprint #4: cancelar reservas de otros con motivo).
+      allow update: if esAdmin()
+                    || (usuarioActivo()
+                        && request.resource.data.usuarioId == request.auth.uid
+                        && (
+                          // cancelar la propia
+                          (resource.data.usuarioId == request.auth.uid
+                            && request.resource.data.estado == 'cancelada')
+                          // o reutilizar un horario ya cancelado
+                          || (resource.data.estado == 'cancelada'
+                            && request.resource.data.estado == 'confirmada')
+                        ));
+
+      allow delete: if esAdmin();
+    }
+
+    // Denegar todo lo demás por defecto.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

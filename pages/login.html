@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar sesión | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="auth-publica">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="contenedor-formulario">
+      <h1>Iniciar sesión</h1>
+      <p class="subtitulo">Ingresa tus credenciales para acceder a tu cuenta.</p>
+
+      <!-- Confirmación de registro (llega con ?registrado=1) -->
+      <div id="mensaje" class="mensaje" role="alert" aria-live="polite"></div>
+
+      <form id="form-login" novalidate>
+        <div class="form-grupo">
+          <label for="correo">Correo electrónico <span class="obligatorio">*</span></label>
+          <input type="email" id="correo" name="correo" placeholder="tucorreo@ejemplo.com" autocomplete="email" required />
+        </div>
+
+        <div class="form-grupo">
+          <label for="password">Contraseña <span class="obligatorio">*</span></label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required />
+        </div>
+
+        <button type="submit" id="btn-login" class="btn btn-primario btn-bloque">INICIAR SESIÓN</button>
+
+        <p class="form-enlaces">
+          <a href="recuperar.html">¿Olvidaste tu contraseña?</a>
+        </p>
+        <p class="form-enlaces">
+          ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
+        </p>
+      </form>
+    </section>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #1: Gestión de Usuarios</footer>
+
+  <script type="module">
+    import { iniciarSesion } from "../js/auth.js";
+    import { enlace } from "../js/guard.js";
+    import {
+      validarLogin,
+      mostrarMensaje,
+      limpiarMensaje,
+      bloquearBoton,
+      traducirErrorFirebase
+    } from "../js/utils.js";
+
+    const form = document.getElementById("form-login");
+    const mensaje = document.getElementById("mensaje");
+    const btn = document.getElementById("btn-login");
+
+    // Si venimos del registro, avisamos con un mensaje de éxito.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("registrado") === "1") {
+      mostrarMensaje(mensaje, "exito", "✅ Registro completado. Ya puedes iniciar sesión con tu correo y contraseña.");
+    }
+    // Sprint #4: si guard.js cerró la sesión por cuenta desactivada, mostramos el motivo.
+    if (params.get("msg")) {
+      mostrarMensaje(mensaje, "error", params.get("msg"));
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      limpiarMensaje(mensaje);
+
+      const datos = {
+        correo: form.correo.value,
+        password: form.password.value
+      };
+
+      const errorValidacion = validarLogin(datos);
+      if (errorValidacion) {
+        mostrarMensaje(mensaje, "error", errorValidacion);
+        return;
+      }
+
+      const desbloquear = bloquearBoton(btn, "Verificando...");
+      const resultado = await iniciarSesion(datos);
+      desbloquear();
+
+      if (resultado.ok) {
+        // Escenario exitoso: ir al dashboard (o a la página solicitada con ?next=).
+        const destino = params.get("next");
+        window.location.href = destino && destino.startsWith("pages/")
+          ? enlace(destino)
+          : enlace("pages/dashboard.html");
+      } else {
+        // Credenciales inválidas: mismo mensaje para correo inexistente o clave errónea.
+        // Sprint #4: cuenta desactivada → su propio mensaje.
+        const esInactiva = resultado.error && resultado.error.code === "cuenta-inactiva";
+        mostrarMensaje(mensaje, "error", esInactiva
+          ? "Tu cuenta está desactivada. Contacta al administrador."
+          : traducirErrorFirebase(resultado.error, "Las credenciales no son válidas."));
+      }
+    });
+  </script>
+</body>
+</html>

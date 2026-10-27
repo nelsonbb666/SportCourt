@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reservas (administrador) | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="admin">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1>📋 Reservas del sistema</h1>
+      <p class="descripcion">
+        Panel de administrador: consulta todas las reservas registradas, fíltralas
+        y gestiona su estado. Solo visible para cuentas con rol <strong>admin</strong>.
+      </p>
+      <div class="mensaje" id="mensaje-admin-reservas"></div>
+
+      <!-- Contadores resumen -->
+      <div class="contadores" id="contadores" hidden>
+        <div class="contador"><span class="contador-num" id="c-total">0</span><span class="contador-etq">Total</span></div>
+        <div class="contador"><span class="contador-num" id="c-confirmadas">0</span><span class="contador-etq">Confirmadas</span></div>
+        <div class="contador"><span class="contador-num" id="c-canceladas">0</span><span class="contador-etq">Canceladas</span></div>
+        <div class="contador"><span class="contador-num" id="c-hoy">0</span><span class="contador-etq">De hoy</span></div>
+      </div>
+    </section>
+
+    <!-- Filtros -->
+    <section class="filtros-canchas" aria-label="Filtros de reservas">
+      <input type="date" id="f-desde" title="Desde la fecha" aria-label="Desde la fecha" />
+      <input type="date" id="f-hasta" title="Hasta la fecha" aria-label="Hasta la fecha" />
+      <select id="f-cancha" aria-label="Filtrar por cancha">
+        <option value="">Todas las canchas</option>
+      </select>
+      <select id="f-estado" aria-label="Filtrar por estado">
+        <option value="">Todos los estados</option>
+        <option value="confirmada">Confirmadas</option>
+        <option value="pasada">Pasadas</option>
+        <option value="cancelada">Canceladas</option>
+      </select>
+      <input type="search" id="f-busqueda" placeholder="Buscar usuario (nombre o correo)…" aria-label="Buscar por usuario" />
+      <button type="button" class="btn btn-contorno" id="btn-limpiar">Limpiar filtros</button>
+      <button type="button" class="btn btn-contorno" id="btn-orden" title="Invertir el orden por fecha">↓ Más recientes</button>
+      <button type="button" class="btn btn-primario" id="btn-exportar">Exportar CSV</button>
+    </section>
+
+    <!-- Tabla (escritorio) / tarjetas (móvil) generadas por admin-reservas.js -->
+    <section id="lista-admin-reservas" aria-live="polite"></section>
+
+    <div class="hero-acciones" style="margin-top: 1rem;">
+      <button type="button" class="btn btn-contorno" id="btn-cargar-mas" hidden>Cargar más reservas</button>
+    </div>
+
+    <p style="margin-top: 1.25rem;">
+      <a href="dashboard.html" class="enlace-volver" style="text-align:left;">← Volver al dashboard</a>
+    </p>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #4: Administración de Reservas</footer>
+
+  <script type="module">
+    import "../js/guard.js"; // protege la página (solo admin) y pinta la navbar
+    import { initAdminReservas } from "../js/admin-reservas.js";
+    initAdminReservas();
+  </script>
+</body>
+</html>
