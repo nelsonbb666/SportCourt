@@ -208,6 +208,67 @@ export function formatearFechaLarga(fecha) {
   return d.toLocaleDateString("es", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 }
 
+/* ---------- Helpers de rango de fechas LOCALES (Sprint #5) ----------
+ * IMPORTANTE: se construyen con getFullYear/getMonth/getDate en hora LOCAL.
+ * No se usa toISOString() porque convierte a UTC y en Colombia (UTC-5)
+ * puede devolver el día equivocado (p. ej. una reserva a las 11 p. m.
+ * contaría para el día siguiente). */
+
+/** Convierte un Date local a string "YYYY-MM-DD" (hora local, no UTC). */
+export function fechaAISO(d) {
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+/** Suma `dias` a una fecha "YYYY-MM-DD" devolviendo otro string ISO local. */
+export function sumarDiasISO(fecha, dias) {
+  const [y, m, d] = fecha.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + dias);
+  return fechaAISO(dt);
+}
+
+/** Lunes de la semana actual (semana de lunes a domingo), "YYYY-MM-DD". */
+export function inicioSemanaISO() {
+  const hoy = new Date();
+  // getDay(): 0=domingo,1=lunes,...,6=sábado → convertimos a lunes=0
+  const diasDesdeLunes = (hoy.getDay() + 6) % 7;
+  hoy.setDate(hoy.getDate() - diasDesdeLunes);
+  return fechaAISO(hoy);
+}
+
+/** Domingo de la semana actual (lunes a domingo), "YYYY-MM-DD". */
+export function finSemanaISO() {
+  return sumarDiasISO(inicioSemanaISO(), 6);
+}
+
+/** Primer día del mes calendario actual, "YYYY-MM-DD". */
+export function inicioMesISO() {
+  const hoy = new Date();
+  return fechaAISO(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+}
+
+/** Último día del mes calendario actual, "YYYY-MM-DD". */
+export function finMesISO() {
+  const hoy = new Date();
+  return fechaAISO(new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0));
+}
+
+/* ---------- Formato de moneda colombiana (Sprint #5) ---------- */
+
+const FORMATO_COP = new Intl.NumberFormat("es-CO", {
+  style: "currency",
+  currency: "COP",
+  maximumFractionDigits: 0
+});
+
+/** Formatea un número como pesos colombianos (ej.: "$ 120.000"). */
+export function formatoMoneda(valor) {
+  const n = Number(valor);
+  return FORMATO_COP.format(Number.isFinite(n) ? n : 0);
+}
+
 /* ---------- Etiquetas de estado (Sprint #4) ---------- */
 
 /** Texto visible del estado de una reserva (color + texto, nunca solo color). */
@@ -248,11 +309,12 @@ function escaparCeldaCSV(valor) {
 /**
  * Genera y descarga un CSV desde el navegador (sin backend).
  * @param {string} nombreArchivo - ej. "reservas.csv"
- * @param {string[]} cabeceras
+ * @param {string[]} cabeceras - si viene vacío, no se escribe fila de cabecera.
  * @param {Array<Array<string|number|null>>} filas
  */
 export function exportarCSV(nombreArchivo, cabeceras, filas) {
-  const lineas = [cabeceras.map(escaparCeldaCSV).join(",")];
+  const lineas = [];
+  if (cabeceras && cabeceras.length) lineas.push(cabeceras.map(escaparCeldaCSV).join(","));
   for (const fila of filas) lineas.push(fila.map(escaparCeldaCSV).join(","));
   // BOM UTF-8 para que Excel abra bien los acentos.
   const blob = new Blob(["\uFEFF" + lineas.join("\r\n")], { type: "text/csv;charset=utf-8;" });

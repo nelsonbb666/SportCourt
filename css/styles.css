@@ -1183,3 +1183,94 @@ footer {
 
 /* Accesos rápidos de admin en el dashboard */
 .panel-admin { border-left: 4px solid var(--verde); }
+
+/* ============================================================
+   Sprint #5: Panel de control y Reportes
+   ============================================================ */
+
+/* ---------- Tarjetas de indicadores ---------- */
+.indicadores-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+  margin: 1.25rem 0;
+}
+@media (min-width: 640px) { .indicadores-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 980px) { .indicadores-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1240px) { .indicadores-grid { grid-template-columns: repeat(5, 1fr); } }
+
+.indicador-tarjeta {
+  background: var(--blanco, #fff);
+  border: 1px solid #e3e8ec;
+  border-top: 4px solid var(--verde);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.indicador-num {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--verde-oscuro, #1b5e20);
+  line-height: 1.1;
+}
+.indicador-num.ind-error { color: #b3261e; font-size: 1.4rem; }
+.indicador-etq { font-weight: 700; color: var(--gris-texto, #37474f); }
+.indicador-sub { font-size: 0.8rem; color: #78909c; }
+
+.sello-actualizacion { font-size: 0.85rem; color: #78909c; align-self: center; }
+
+/* ---------- Ingresos ---------- */
+.total-ingresos {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  background: #e8f5e9;
+  border: 1px solid var(--verde);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+.total-ingresos strong { font-size: 1.4rem; color: var(--verde-oscuro, #1b5e20); }
+.nota-canceladas { font-size: 0.85rem; color: #78909c; font-style: italic; }
+.fila-total td { font-weight: 800; background: #f1f8f2; }
+
+.tabla-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---------- Reportes ---------- */
+.resumen-reporte {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.resumen-dato {
+  border: 1px solid #e3e8ec;
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+  background: #fafafa;
+}
+.resumen-dato strong { display: block; font-size: 1.3rem; color: var(--verde-oscuro, #1b5e20); }
+.resumen-dato span { font-size: 0.8rem; color: #78909c; }
+
+/* ---------- Impresión (solo el reporte) ---------- */
+@media print {
+  .navbar, footer, .no-print, #nav-links, .hero-acciones, .filtros-canchas,
+  .mensaje, #panel-admin { display: none !important; }
+  body { background: #fff; color: #000; }
+  main { max-width: 100%; padding: 0; margin: 0; }
+  .panel { border: none; box-shadow: none; padding: 0.25rem 0; }
+  .tabla-scroll { overflow: visible; }
+  .tabla-reservas { width: 100%; border-collapse: collapse; }
+  .tabla-reservas th, .tabla-reservas td {
+    border: 1px solid #999; color: #000; background: transparent;
+  }
+  a { color: #000; text-decoration: none; }
+}
+
+/* Etiquetas visuales para campos de fecha en filtros (Sprint #5) */
+.sr-label { font-size: 0.8rem; color: #78909c; align-self: flex-end; }

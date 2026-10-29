@@ -414,12 +414,68 @@ Desde el navegador **no se puede eliminar ni deshabilitar cuentas de Firebase Au
 9. Admin intenta desactivarse o quitarse el rol a sí mismo → se bloquea. ✔
 10. Un usuario normal intenta cambiar su propio `rol` o `activo` desde la consola del navegador → las reglas lo rechazan. ✔
 
+## 📊 Sprint #5: Panel de Control y Reportes
+
+El administrador ahora tiene una visión general del sistema, **sin librerías de gráficos ni colecciones nuevas**: todo se calcula leyendo `reservas`, `canchas` y `usuarios`. Las reglas de Firestore del Sprint #4 ya permiten esas lecturas al admin (`firestore.rules` no cambió en este sprint).
+
+### Nuevas páginas (solo admin)
+
+| Página | Contenido |
+|---|---|
+| `pages/admin-panel.html` | Indicadores + ingresos por periodo |
+| `pages/admin-reportes.html` | Generar reporte por rango, exportar CSV e imprimir |
+
+Nuevos enlaces en la navbar visibles solo para admin: **"Panel de control"** y **"Reportes"**. El dashboard del admin incluye "PANEL DE CONTROL" como acceso principal.
+
+### 1. Panel de indicadores
+
+Cinco tarjetas: reservas de **hoy**, de la **semana** (lunes a domingo), del **mes** (todas solo con estado `confirmada`), **canchas activas** (`activa == true`) y **usuarios registrados** (con cuántos están activos). Botón **Actualizar** que vuelve a consultar y sello "Actualizado a las HH:mm". Cada consulta es independiente (`Promise.allSettled`): si una falla, las demás tarjetas siguen mostrando su dato.
+
+- Los contadores de canchas usan `getCountFromServer` (no descarga todos los documentos).
+- Los cálculos viven en `js/reportes.js` (funciones puras reutilizables); la página solo pinta.
+
+### 2. Ingresos por periodo
+
+Selector **Hoy / Esta semana / Este mes / Rango personalizado** (dos fechas con validación desde ≤ hasta). Muestra el total en moneda colombiana (`Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 })` → `$ 120.000`) y tabla de **desglose por cancha** (nombre, reservas confirmadas, ingresos) ordenada de mayor a menor, con fila TOTAL. Nota visible: *"Las reservas canceladas no se incluyen."* Estado vacío: *"No hay ingresos en este periodo."*
+
+**Regla de ingresos:** solo suman las reservas `confirmada`; si `precio` no existe o no es número cuenta como 0; las `cancelada` nunca suman.
+
+### 3. Reporte por rango (exportar e imprimir)
+
+Formulario desde/hasta (obligatorios, desde ≤ hasta, máximo 366 días) → botón **GENERAR REPORTE**:
+- **Resumen**: total, confirmadas, canceladas e ingresos.
+- **Detalle**: fecha, hora inicio-fin, cancha, usuario (nombre + correo cruzando `usuarioId` con la colección `usuarios` cargada una sola vez en un mapa; si no existe → "Usuario no disponible"), precio y estado. Ordenado por fecha y hora.
+- **Exportar CSV**: reutiliza `utils.exportarCSV` (BOM UTF-8 para Excel, escape de comillas, prefijo `'` anti-inyección de fórmulas). Archivo: `reporte-reservas_DESDE_a_HASTA.csv`, con las filas del resumen al inicio.
+- **Imprimir**: `window.print()` + `@media print` en `styles.css` que oculta navbar, filtros y botones y deja solo título, rango, resumen y tabla.
+- Rango sin reservas → mensaje **"No hay datos para ese periodo"** y botones de exportar/imprimir deshabilitados.
+
+### ⏰ Zona horaria (decisión importante)
+
+Las fechas de `reservas` son strings `"YYYY-MM-DD"` locales. En `utils.js` se añadieron `fechaAISO`, `sumarDiasISO`, `inicioSemanaISO`, `finSemanaISO`, `inicioMesISO` y `finMesISO`, construidos con `getFullYear/getMonth/getDate` en **hora local**. **No se usa `toISOString()`** porque convierte a UTC y en Colombia (UTC-5) devolvería el día equivocado: una reserva creada a las 11 p. m. contaría para el día siguiente. Semana definida de lunes a domingo.
+
+Las consultas por rango usan `where('fecha','>=',desde)` + `where('fecha','<=',hasta)` sobre **un único campo** (los strings ISO son ordenable lexicográficamente) → **no requiere índice compuesto**. El estado se filtra en el cliente.
+
+### 🔍 Pruebas manuales del Sprint #5
+
+1. Crear reservas en distintas fechas (hoy, esta semana, este mes) y verificar que los tres contadores coinciden con lo esperado. ✔
+2. Cancelar una reserva y comprobar que deja de contarse en los indicadores y en los ingresos. ✔
+3. Verificar que "Canchas activas" excluye las canchas con `activa == false`. ✔
+4. Ingresos de "Hoy", "Semana", "Mes" y rango personalizado coinciden con la suma manual de los precios de las reservas confirmadas. ✔
+5. El desglose por cancha suma exactamente el total. ✔
+6. Rango con "desde" posterior a "hasta" → muestra error de validación. ✔
+7. Generar reporte con datos → el resumen coincide con el detalle; el CSV abre bien en Excel con acentos. ✔
+8. Generar reporte de un rango sin reservas → mensaje "No hay datos para ese periodo" y botones deshabilitados. ✔
+9. Imprimir → la vista de impresión muestra solo el reporte. ✔
+10. Un usuario normal abre `admin-panel.html` o `admin-reportes.html` por URL → es redirigido. ✔
+11. Reservar a las 11 p. m. y comprobar que cuenta para el día correcto (prueba del problema de zona horaria). ✔
+
 ## 🗺️ Roadmap
 
 - ✅ Sprint #1: Gestión de usuarios
 - ✅ Sprint #2: Gestión de canchas, roles y disponibilidad
 - ✅ Sprint #3: Gestión de reservas: reservar, consultar y cancelar
 - ✅ Sprint #4: Administración de reservas y gestión de usuarios (panel de admin)
+- ✅ Sprint #5: Panel de control y reportes (indicadores, ingresos, CSV e impresión)
 
 ## 📄 Licencia
 
