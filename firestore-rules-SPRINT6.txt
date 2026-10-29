@@ -1,0 +1,137 @@
+rules_version = '2';
+
+/**
+ * ============================================================
+ * Reglas de seguridad de Cloud Firestore — Sprint #4
+ * ============================================================
+ * Publica este archivo en Firebase Console → Firestore Database → Rules
+ * (o mediante Firebase CLI: `firebase deploy --only firestore:rules`).
+ *
+ * Principios:
+ *  - "usuarios": el usuario lee su propio documento; el ADMIN lee todos y
+ *    puede cambiar rol/activo de OTROS (nunca el propio). El registro solo
+ *    crea cuentas con rol "usuario" y activo true. Nadie elimina perfiles.
+ *  - "canchas": cualquier usuario autenticado puede leer; solo admin
+ *    puede crear / actualizar / eliminar.
+ *  - "reservas": autenticados leen (necesario para marcar horarios
+ *    ocupados); solo un usuario ACTIVO puede CREAR una reserva propia
+ *    confirmada; se puede ACTUALIZAR para cancelar la propia o reutilizar
+ *    un horario ya cancelado; el admin puede modificar cualquiera
+ *    (cancelar reservas de otros) y es el único que puede eliminar.
+ *    Sprint #6: no se puede crear ni reactivar una reserva cuyo ID coincide
+ *    con un documento de "bloqueos" (horario bloqueado por el admin).
+ *  - "bloqueos" (Sprint #6): cualquier autenticado puede leer (la app los
+ *    muestra como "Bloqueado"); solo el admin puede crear/eliminar.
+ *  - Ocultar botones en la interfaz NO es seguridad: estas reglas son
+ *    la protección real del backend.
+ *
+ * ⚠️ Límite conocido (documentado en el README): las reglas de anticipación
+ * máxima (30 días) y máximo de reservas activas (3) se validan SOLO en el
+ * cliente, porque las reglas de Firestore no pueden contar documentos de una
+ * consulta. Para blindarlas haría falta Cloud Functions (mejora futura).
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estaAutenticado() { return request.auth != null; }
+
+    function esAdmin() {
+      return estaAutenticado() &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.get('rol', 'usuario') == 'admin';
+    }
+
+    // Sprint #4: los usuarios desactivados no pueden crear reservas.
+    // get(...).data.get('activo', true): usuarios antiguos sin el campo
+    // se consideran activos (compatibilidad con datos del Sprint #1-#3).
+    function usuarioActivo() {
+      return estaAutenticado() &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.get('activo', true) == true;
+    }
+
+    // Perfil de usuario: uno por UID.
+    match /usuarios/{uid} {
+      // El usuario lee el suyo; el admin lee todos (panel "Usuarios").
+      allow read: if estaAutenticado() && (request.auth.uid == uid || esAdmin());
+
+      // Registro: solo cuenta propia, rol usuario y activa.
+      allow create: if estaAutenticado() && request.auth.uid == uid
+                    && request.resource.data.rol == 'usuario'
+                    && request.resource.data.activo == true;
+
+      // El usuario edita su perfil sin tocar rol ni activo;
+      // el admin puede cambiar rol y activo de OTROS (no el propio doc,
+      // lo que impide que un admin se auto-desactive o se quite el rol).
+      allow update: if (estaAutenticado() && request.auth.uid == uid
+                        && request.resource.data.rol == resource.data.rol
+                        && request.resource.data.get('activo', true) == resource.data.get('activo', true))
+                    || (esAdmin() && request.auth.uid != uid);
+
+      // Nunca se eliminan perfiles desde el cliente (sin Admin SDK).
+      allow delete: if false;
+    }
+
+    // Canchas: lectura para usuarios con sesión; escritura solo admin.
+    match /canchas/{canchaId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if esAdmin();
+    }
+
+    // Reservas: ID determinista canchaId_fecha_horaInicio (Sprint #3).
+    match /reservas/{reservaId} {
+      allow read: if estaAutenticado();
+
+      // Crear: solo usuario ACTIVO, para sí mismo, confirmada y con
+      // campos obligatorios válidos (lo demás lo valida la app).
+      // Sprint #6: además no puede existir un bloqueo con el mismo ID
+      // determinista (canchaId_fecha_horaInicio) — protege el horario
+      // bloqueado también frente a la consola del navegador.
+      allow create: if usuarioActivo()
+                    && request.resource.data.usuarioId == request.auth.uid
+                    && request.resource.data.estado == 'confirmada'
+                    && request.resource.data.canchaId is string
+                    && request.resource.data.fecha is string
+                    && request.resource.data.horaInicio is string
+                    && request.resource.data.horaFin is string
+                    && !exists(/databases/$(database)/documents/bloqueos/$(reservaId));
+
+      // Reescribir una reserva cancelada propia (volver a reservar el mismo
+      // horario) o cancelar la propia; el admin puede modificar cualquiera
+      // (Sprint #4: cancelar reservas de otros con motivo).
+      // Sprint #6: reutilizar un horario cancelado también exige que no esté
+      // bloqueado (misma condición exists sobre el ID compartido).
+      allow update: if esAdmin()
+                    || (usuarioActivo()
+                        && request.resource.data.usuarioId == request.auth.uid
+                        && (resource.data.estado != 'cancelada'
+                            || request.resource.data.estado != 'confirmada'
+                            || !exists(/databases/$(database)/documents/bloqueos/$(reservaId)))
+                        && (
+                          // cancelar la propia
+                          (resource.data.usuarioId == request.auth.uid
+                            && request.resource.data.estado == 'cancelada')
+                          // o reutilizar un horario ya cancelado
+                          || (resource.data.estado == 'cancelada'
+                            && request.resource.data.estado == 'confirmada')
+                        ));
+
+      allow delete: if esAdmin();
+    }
+
+    // Sprint #6: bloqueos de horarios (mantenimiento, torneos, clima).
+    // Un documento por hora bloqueada, con el mismo ID determinista que
+    // las reservas. Todos los autenticados leen (la disponibilidad muestra
+    // "Bloqueado"); solo el admin crea/actualiza/levanta. El MOTIVO solo
+    // se muestra en la interfaz de admin (las lecturas del usuario podrían
+    // exponerlo vía consola: dato sensible mínimo, aceptado como límite).
+    match /bloqueos/{bloqueoId} {
+      allow read: if estaAutenticado();
+      allow create, update, delete: if esAdmin();
+    }
+
+    // Denegar todo lo demás por defecto.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

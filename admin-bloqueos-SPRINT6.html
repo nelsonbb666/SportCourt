@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bloqueos de horarios | Reserva de Canchas</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body data-page="admin">
+
+  <nav class="navbar">
+    <a class="logo" href="../index.html">⚽ Reserva de Canchas</a>
+    <div class="nav-links" id="nav-links"></div>
+  </nav>
+
+  <main>
+    <section class="panel">
+      <h1>🔒 Bloqueo de horarios</h1>
+      <p class="descripcion">
+        Bloquea horas de una cancha por mantenimiento, torneos o clima. Los
+        usuarios verán esos horarios como <strong>Bloqueado</strong> y no
+        podrán reservarlos. Solo visible para cuentas con rol <strong>admin</strong>.
+      </p>
+      <div class="mensaje" id="mensaje-bloqueos"></div>
+    </section>
+
+    <!-- Formulario de bloqueo -->
+    <section class="panel" aria-label="Bloquear horario">
+      <h2>Nuevo bloqueo</h2>
+      <form id="form-bloqueo" class="formulario" autocomplete="off" novalidate>
+        <div class="fila-campos">
+          <div class="campo">
+            <label for="b-cancha">Cancha *</label>
+            <select id="b-cancha" required>
+              <option value="">Cargando canchas...</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="b-fecha">Fecha *</label>
+            <input type="date" id="b-fecha" required />
+          </div>
+        </div>
+        <div class="fila-campos">
+          <div class="campo">
+            <label for="b-inicio">Hora de inicio *</label>
+            <input type="time" id="b-inicio" step="3600" required placeholder="18:00" />
+          </div>
+          <div class="campo">
+            <label for="b-fin">Hora de fin *</label>
+            <input type="time" id="b-fin" step="3600" required placeholder="21:00" />
+          </div>
+        </div>
+        <div class="campo">
+          <label for="b-motivo">Motivo * (3 a 200 caracteres)</label>
+          <input type="text" id="b-motivo" maxlength="200" required
+                 placeholder="Ej.: Mantenimiento del piso sintético" />
+        </div>
+        <p class="ayuda-formulario">
+          Se bloquean bloques completos de 1 hora (ej. 18:00–21:00 bloquea las horas
+          18:00, 19:00 y 20:00). No se puede bloquear un horario con reserva confirmada:
+          cancélala primero desde
+          <a href="admin-reservas.html">Reservas</a>.
+        </p>
+        <div class="hero-acciones" style="margin-top: .5rem;">
+          <button type="submit" class="btn btn-primario" id="btn-bloquear">BLOQUEAR</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Listado de bloqueos vigentes -->
+    <section class="panel" aria-label="Bloqueos vigentes">
+      <h2>Bloqueos vigentes</h2>
+
+      <div class="filtros" id="filtros-bloqueos">
+        <div class="campo-filtro">
+          <label for="f-b-cancha">Cancha</label>
+          <select id="f-b-cancha">
+            <option value="">Todas las canchas</option>
+          </select>
+        </div>
+        <div class="campo-filtro">
+          <label for="f-b-fecha">Fecha</label>
+          <input type="date" id="f-b-fecha" />
+        </div>
+        <button type="button" class="btn btn-contorno" id="btn-limpiar-filtros">Limpiar filtros</button>
+        <button type="button" class="btn btn-contorno" id="btn-recargar-bloqueos">Actualizar</button>
+      </div>
+
+      <div id="lista-bloqueos" aria-live="polite"></div>
+    </section>
+
+    <p style="margin-top: 1.25rem;">
+      <a href="dashboard.html" class="enlace-volver" style="text-align:left;">← Volver al dashboard</a>
+    </p>
+  </main>
+
+  <footer>© 2026 Reserva de Canchas — Sprint #6: Bloqueo de horarios</footer>
+
+  <script type="module">
+    import "../js/guard.js"; // protege la página (solo admin) y pinta la navbar
+    import { initAdminBloqueos } from "../js/admin-bloqueos.js";
+    initAdminBloqueos();
+  </script>
+</body>
+</html>
